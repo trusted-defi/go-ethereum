@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package trusted.v1;
+
+import "google/protobuf/empty.proto";
+//import "google/protobuf/timestamp.proto";
+//import "google/protobuf/any.proto";
+import "trusted/v1/request_response.proto";
+
+service TrustedService {
+    rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
+    rpc AddTx(AddTxRequest) returns (AddTxResponse) {}
+    rpc Status(StatusRequest) returns (StatusResponse) {}
+    rpc Reset(ResetRequest) returns (ResetResponse) {}
+    rpc Pending(PendingRequest) returns (PendingResponse) {}
+}
+
+
+service ChainService {
+    rpc GetBlock(BlockRequest) returns (BlockResponse) {}
+    rpc GetBalance(BalanceRequest) returns (BalanceResponse) {}
+    rpc GetNonce(NonceRequest) returns (NonceResponse) {}
+    rpc CurrentBlock(CurrentBlockRequest) returns (CurrentBlockResponse) {}
+    rpc LatestHeader(LatestHeaderRequest) returns (LatestHeaderResponse) {}
+    rpc ChainHeadEvent(ChainHeadEventRequest) returns (stream ChainHeadEventResponse) {}
+}
