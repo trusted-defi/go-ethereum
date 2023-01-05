@@ -20,8 +20,6 @@ import (
 	crand "crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/trusted/chainservice"
 	"hash/crc32"
 	"net/http"
 	"os"
@@ -203,8 +201,6 @@ func (n *Node) Start() error {
 		n.stopServices(started)
 		n.doClose(nil)
 	}
-	// todo: sager replace to bc instance.
-	chainservice.StartChainService(new(core.BlockChain))
 	return err
 }
 

@@ -20,6 +20,7 @@ package eth
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/trusted/chainservice"
 	"math/big"
 	"runtime"
 	"strings"
@@ -99,6 +100,7 @@ type Ethereum struct {
 	lock sync.RWMutex // Protects the variadic fields (e.g. gas price and etherbase)
 
 	shutdownTracker *shutdowncheck.ShutdownTracker // Tracks if and when the node has shutdown ungracefully
+	chainService    *chainservice.ChainService
 }
 
 // New creates a new Ethereum object (including the
@@ -536,6 +538,7 @@ func (s *Ethereum) Start() error {
 	}
 	// Start the networking layer and the light server if requested
 	s.handler.Start(maxPeers)
+	go chainservice.StartChainService(s.blockchain)
 	return nil
 }
 
