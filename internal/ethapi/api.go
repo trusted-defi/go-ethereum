@@ -1054,6 +1054,40 @@ func (s *BlockChainAPI) Call(ctx context.Context, args TransactionArgs, blockNrO
 	return result.Return(), result.Err
 }
 
+// UnlimitedCall 为合约执行交易，不限制gas，但是有超时时间设置,支持批量
+func (s *BlockChainAPI) UnlimitedCall(ctx context.Context, args []TransactionArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides *StateOverride, timeOut uint64) (results []hexutil.Bytes, errors []error) {
+	var timeOutDuration time.Duration
+	if timeOut == 0 {
+		// 默认一般是5s
+		timeOutDuration = s.b.RPCEVMTimeout()
+	} else {
+		timeOutDuration = time.Duration(timeOut) * time.Second
+	}
+
+	for i, arg := range args {
+		//不要gas限制
+		arg.Gas = nil
+		// gas = uint64(math.MaxUint64 / 2)
+		globalGasCap := uint64(0)
+		result, err := DoCall(ctx, s.b, arg, blockNrOrHash, overrides, timeOutDuration, globalGasCap)
+		if err != nil {
+			results[i] = nil
+			errors[i] = err
+			continue
+		}
+
+		// If the result contains a revert reason, try to unpack and return it.
+		if len(result.Revert()) > 0 {
+			results[i] = nil
+			errors[i] = newRevertError(result)
+			continue
+		}
+		results[i] = result.Return()
+		errors[i] = result.Err
+	}
+	return results, errors
+}
+
 func DoEstimateGas(ctx context.Context, b Backend, args TransactionArgs, blockNrOrHash rpc.BlockNumberOrHash, gasCap uint64) (hexutil.Uint64, error) {
 	// Binary search the gas requirement, as it may be higher than the amount used
 	var (
