@@ -1006,6 +1006,57 @@ func DoCall(ctx context.Context, b Backend, args TransactionArgs, blockNrOrHash 
 	return result, nil
 }
 
+func DoUnlimitedCall(ctx context.Context, state *state.StateDB, header *types.Header, b Backend, args TransactionArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides *StateOverride, timeout time.Duration, globalGasCap uint64) (*core.ExecutionResult, error) {
+	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+
+	if err := overrides.Apply(state); err != nil {
+		return nil, err
+	}
+	// Setup context so it may be cancelled the call has completed
+	// or, in case of unmetered gas, setup a context with a timeout.
+	var cancel context.CancelFunc
+	if timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+	} else {
+		ctx, cancel = context.WithCancel(ctx)
+	}
+	// Make sure the context is cancelled when the call has completed
+	// this makes sure resources are cleaned up.
+	defer cancel()
+
+	// Get a new instance of the EVM.
+	msg, err := args.ToMessage(globalGasCap, header.BaseFee)
+	if err != nil {
+		return nil, err
+	}
+	evm, vmError, err := b.GetEVM(ctx, msg, state, header, &vm.Config{NoBaseFee: true})
+	if err != nil {
+		return nil, err
+	}
+	// Wait for the context to be done and cancel the evm. Even if the
+	// EVM has finished, cancelling may be done (repeatedly)
+	go func() {
+		<-ctx.Done()
+		evm.Cancel()
+	}()
+
+	// Execute the message.
+	gp := new(core.GasPool).AddGas(math.MaxUint64)
+	result, err := core.ApplyMessage(evm, msg, gp)
+	if err := vmError(); err != nil {
+		return nil, err
+	}
+
+	// If the timer caused an abort, return an appropriate error message
+	if evm.Cancelled() {
+		return nil, fmt.Errorf("execution aborted (timeout = %v)", timeout)
+	}
+	if err != nil {
+		return result, fmt.Errorf("err: %w (supplied gas %d)", err, msg.Gas())
+	}
+	return result, nil
+}
+
 func newRevertError(result *core.ExecutionResult) *revertError {
 	reason, errUnpack := abi.UnpackRevert(result.Revert())
 	err := errors.New("execution reverted")
@@ -1043,6 +1094,7 @@ func (e *revertError) ErrorData() interface{} {
 // Note, this function doesn't make and changes in the state/blockchain and is
 // useful to execute and retrieve values.
 func (s *BlockChainAPI) Call(ctx context.Context, args TransactionArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides *StateOverride) (hexutil.Bytes, error) {
+	log.Info("Call", "args", args, "blockNrOrHash", blockNrOrHash, "overrides", overrides)
 	result, err := DoCall(ctx, s.b, args, blockNrOrHash, overrides, s.b.RPCEVMTimeout(), s.b.RPCGasCap())
 	if err != nil {
 		return nil, err
@@ -1054,38 +1106,58 @@ func (s *BlockChainAPI) Call(ctx context.Context, args TransactionArgs, blockNrO
 	return result.Return(), result.Err
 }
 
+type Result struct {
+	Results []hexutil.Bytes `json:"results"`
+	Errors  []string        `json:"errors"`
+}
+
 // UnlimitedCall 为合约执行交易，不限制gas，但是有超时时间设置,支持批量
-func (s *BlockChainAPI) UnlimitedCall(ctx context.Context, args []TransactionArgs, blockNrOrHash rpc.BlockNumberOrHash, overrides *StateOverride, timeOut uint64) (results []hexutil.Bytes, errors []error) {
+func (s *BlockChainAPI) UnlimitedCall(ctx context.Context, args []TransactionArgs, blockNrOrHash rpc.BlockNumberOrHash, timeOut hexutil.Big, overrides *StateOverride) (*Result, error) {
 	var timeOutDuration time.Duration
-	if timeOut == 0 {
+	if timeOut.ToInt().Int64() == 0 {
 		// 默认一般是5s
 		timeOutDuration = s.b.RPCEVMTimeout()
 	} else {
-		timeOutDuration = time.Duration(timeOut) * time.Second
+		timeOutDuration = time.Duration(timeOut.ToInt().Int64()) * time.Second
 	}
 
+	state, header, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
+	if state == nil || err != nil {
+		return nil, err
+	}
+
+	results := make([]hexutil.Bytes, len(args))
+	errors := make([]string, len(args))
 	for i, arg := range args {
 		//不要gas限制
 		arg.Gas = nil
 		// gas = uint64(math.MaxUint64 / 2)
 		globalGasCap := uint64(0)
-		result, err := DoCall(ctx, s.b, arg, blockNrOrHash, overrides, timeOutDuration, globalGasCap)
+		result, err := DoUnlimitedCall(ctx, state, header, s.b, arg, blockNrOrHash, overrides, timeOutDuration, globalGasCap)
 		if err != nil {
 			results[i] = nil
-			errors[i] = err
+			errors[i] = err.Error()
 			continue
 		}
 
 		// If the result contains a revert reason, try to unpack and return it.
 		if len(result.Revert()) > 0 {
 			results[i] = nil
-			errors[i] = newRevertError(result)
+			errors[i] = newRevertError(result).Error()
 			continue
 		}
 		results[i] = result.Return()
-		errors[i] = result.Err
+		if result.Err != nil {
+			errors[i] = result.Err.Error()
+		} else {
+			errors[i] = ""
+		}
 	}
-	return results, errors
+
+	return &Result{
+		Results: results,
+		Errors:  errors,
+	}, nil
 }
 
 func DoEstimateGas(ctx context.Context, b Backend, args TransactionArgs, blockNrOrHash rpc.BlockNumberOrHash, gasCap uint64) (hexutil.Uint64, error) {
