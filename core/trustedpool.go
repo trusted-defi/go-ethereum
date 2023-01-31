@@ -6,13 +6,13 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/trusted/txpoolclient"
+	"github.com/ethereum/go-ethereum/trusted/engine"
 	"math/big"
 	"sync"
 )
 
 type TxPool struct {
-	client *txpoolclient.TxPoolClient
+	client *engine.TrustedEngineClient
 	txFeed event.Feed
 	scope  event.SubscriptionScope
 	wg     sync.WaitGroup
@@ -21,7 +21,7 @@ type TxPool struct {
 
 func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain blockChain) *TxPool {
 	pool := &TxPool{
-		client: txpoolclient.NewTxPoolClient(),
+		client: engine.NewTrustedEngineClient(),
 	}
 	return pool
 }
