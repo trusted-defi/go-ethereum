@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/trusted/engine"
 	"math/big"
 	"strings"
 	"time"
@@ -1451,9 +1452,10 @@ func AccessList(ctx context.Context, b Backend, blockNrOrHash rpc.BlockNumberOrH
 
 // TransactionAPI exposes methods for reading and creating transaction data.
 type TransactionAPI struct {
-	b         Backend
-	nonceLock *AddrLocker
-	signer    types.Signer
+	b             Backend
+	nonceLock     *AddrLocker
+	signer        types.Signer
+	trustedEngine *engine.TrustedEngineClient
 }
 
 // NewTransactionAPI creates a new RPC service with methods for interacting with transactions.
@@ -1461,7 +1463,7 @@ func NewTransactionAPI(b Backend, nonceLock *AddrLocker) *TransactionAPI {
 	// The signer used by the API should always be the 'latest' known one because we expect
 	// signers to be backwards-compatible with old transactions.
 	signer := types.LatestSigner(b.ChainConfig())
-	return &TransactionAPI{b, nonceLock, signer}
+	return &TransactionAPI{b, nonceLock, signer, engine.NewTrustedEngineClient()}
 }
 
 // GetBlockTransactionCountByNumber returns the number of transactions in the block with the given block number.
@@ -1875,6 +1877,20 @@ func (s *TransactionAPI) Resend(ctx context.Context, sendArgs TransactionArgs, g
 		}
 	}
 	return common.Hash{}, fmt.Errorf("transaction %#x not found", matchTx.Hash())
+}
+
+// CryptTrustedTransaction Crypt raw transaction with trusted grpc and return crypted data.
+func (s *TransactionAPI) CryptTrustedTransaction(ctx context.Context, input hexutil.Bytes) (hexutil.Bytes, error) {
+	if s.trustedEngine != nil {
+		return s.trustedEngine.Crypt(input)
+	} else {
+		return []byte{}, errors.New("trusted engine is not exist")
+	}
+}
+
+// SendTrustedTransaction send trusted transaction to trusted engine.
+func (s *TransactionAPI) SendTrustedTransaction(ctx context.Context, input hexutil.Bytes) (*engine.SendTrustedTransacionResult, error) {
+	return s.trustedEngine.AddLocalTrustedTx(input)
 }
 
 // DebugAPI is the collection of Ethereum APIs exposed over the debugging

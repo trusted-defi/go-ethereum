@@ -595,6 +595,16 @@ web3._extend({
 			call: 'eth_getLogs',
 			params: 1,
 		}),
+		new web3._extend.Method({
+			name: 'sendTrustedTransaction',
+			call: 'eth_sendTrustedTransaction',
+			params: 1,
+		}),
+		new web3._extend.Method({
+			name: 'cryptTrustedTransaction',
+			call: 'eth_cryptTrustedTransaction',
+			params: 1,
+		}),
 	],
 	properties: [
 		new web3._extend.Property({
