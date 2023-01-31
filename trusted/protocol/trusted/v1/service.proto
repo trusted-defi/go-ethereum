@@ -13,6 +13,11 @@ service TrustedService {
     rpc Status(StatusRequest) returns (StatusResponse) {}
     rpc Reset(ResetRequest) returns (ResetResponse) {}
     rpc Pending(PendingRequest) returns (PendingResponse) {}
+
+
+    rpc Crypt(CryptRequest) returns (CryptResponse) {}
+    rpc AddLocalTrustedTx(AddTrustedTxRequest) returns (AddTrustedTxResponse) {}
+    rpc AddRemoteTrustedTx(AddTrustedTxRequest) returns (AddTrustedTxResponse) {}
 }
 
 

@@ -88,3 +88,19 @@ func (t *TxPoolClient) Get(hash common.Hash) *types.Transaction {
 func (t *TxPoolClient) Has(hash common.Hash) bool {
 	return false
 }
+
+type TrustedPool interface {
+	SetPrice(price *big.Int)
+	GasPrice() *big.Int
+	Nonce(addr common.Address) uint64
+	Stat() (pendingCount int, queueCount int)
+	Content() (map[common.Address]types.Transactions, map[common.Address]types.Transactions)
+	ContentFrom(addr common.Address) (types.Transactions, types.Transactions)
+	Pending() map[common.Address]types.Transactions
+	Locals() []common.Address
+	AddLocals(txs []*types.Transaction) []error
+	AddRemotes(txs []*types.Transaction) []error
+	Status(hashes []common.Hash) []uint
+	Get(hash common.Hash) *types.Transaction
+	Has(hash common.Hash) bool
+}

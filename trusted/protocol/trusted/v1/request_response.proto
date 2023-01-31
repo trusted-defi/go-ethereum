@@ -79,3 +79,20 @@ message ChainHeadEventRequest {}
 message ChainHeadEventResponse {
     bytes block_data = 1;
 }
+
+message CryptRequest {
+    uint32 method = 1;
+    bytes data = 2;
+}
+message CryptResponse {
+    bytes crypted = 1;
+}
+
+message AddTrustedTxRequest {
+    bytes ctypted_tx = 1;
+}
+
+message AddTrustedTxResponse {
+    bytes hash = 1;
+    bytes asset = 2;
+}
