@@ -142,7 +142,10 @@ func (s *ChainService) ChainHeadEvent(req *trusted.ChainHeadEventRequest, res tr
 			}
 			msg := new(trusted.ChainHeadEventResponse)
 			msg.BlockData, _ = rlp.EncodeToBytes(newchain.Block)
-			res.SendMsg(msg)
+			if err = res.SendMsg(msg); err != nil {
+				log.Error("chain head event send msg failed", err)
+				return err
+			}
 		}
 	}
 	return err
