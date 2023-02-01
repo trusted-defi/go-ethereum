@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	trustedv1 "github.com/ethereum/go-ethereum/trusted/protocol/generate/trusted/v1"
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -178,6 +179,28 @@ func (t *TrustedEngineClient) Has(hash common.Hash) bool {
 		return false
 	}
 	return res.Has
+}
+
+func (t *TrustedEngineClient) SubscribeNewTx(ch chan []trustedtype.TrustedCryptTx) error {
+	server, err := t.client.SubscribeNewTransaction(context.Background(), new(trustedv1.SubscribeNewTxRequest))
+	if err != nil {
+		return err
+	}
+	var msg *trustedv1.SubscribeNewTxResponse
+	bcontinue := true
+	for bcontinue {
+		msg, err = server.Recv()
+		if err != nil {
+			bcontinue = false
+			break
+		}
+		ntxs := make([]trustedtype.TrustedCryptTx, len(msg.CryptedNewTx))
+		for i, tx := range msg.CryptedNewTx {
+			ntxs[i] = common.CopyBytes(tx)
+		}
+		ch <- ntxs
+	}
+	return err
 }
 
 func (t *TrustedEngineClient) Crypt(data []byte) ([]byte, error) {

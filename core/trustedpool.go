@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/trusted/engine"
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math/big"
 	"sync"
 )
@@ -26,6 +27,19 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 	return pool
 }
 
+func (pool *TxPool) loop() {
+	var newTxCh = make(chan []trustedtype.TrustedCryptTx, 10000)
+	go func() {
+		pool.client.SubscribeNewTx(newTxCh)
+	}()
+	for {
+		select {
+		case ntxs := <-newTxCh:
+			pool.txFeed.Send(NewTrustedTxsEvent{ntxs})
+		}
+	}
+}
+
 // Stop terminates the transaction pool.
 func (pool *TxPool) Stop() {
 	// Unsubscribe all subscriptions registered from txpool
@@ -39,6 +53,12 @@ func (pool *TxPool) Stop() {
 // SubscribeNewTxsEvent registers a subscription of NewTxsEvent and
 // starts sending event to the given channel.
 func (pool *TxPool) SubscribeNewTxsEvent(ch chan<- NewTxsEvent) event.Subscription {
+	return pool.scope.Track(pool.txFeed.Subscribe(ch))
+}
+
+// SubscribeNewTrustedTxsEvent registers a subscription of NewTxsEvent and
+// starts sending event to the given channel.
+func (pool *TxPool) SubscribeNewTrustedTxsEvent(ch chan<- NewTxsEvent) event.Subscription {
 	return pool.scope.Track(pool.txFeed.Subscribe(ch))
 }
 
