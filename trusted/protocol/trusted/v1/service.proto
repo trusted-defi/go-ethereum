@@ -29,6 +29,7 @@ service TrustedService {
     rpc TxStatus(TxStatusRequest) returns (TxStatusResponse) {}
     rpc TxGet(TxGetRequest) returns (TxGetResponse) {}
     rpc TxHas(TxHasRequest) returns (TxHasResponse) {}
+    rpc SubscribeNewTransaction(SubscribeNewTxRequest) returns (stream SubscribeNewTxResponse) {}
 
 
     rpc Crypt(CryptRequest) returns (CryptResponse) {}

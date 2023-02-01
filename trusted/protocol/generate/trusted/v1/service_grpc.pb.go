@@ -36,6 +36,7 @@ type TrustedServiceClient interface {
 	TxStatus(ctx context.Context, in *TxStatusRequest, opts ...grpc.CallOption) (*TxStatusResponse, error)
 	TxGet(ctx context.Context, in *TxGetRequest, opts ...grpc.CallOption) (*TxGetResponse, error)
 	TxHas(ctx context.Context, in *TxHasRequest, opts ...grpc.CallOption) (*TxHasResponse, error)
+	SubscribeNewTransaction(ctx context.Context, in *SubscribeNewTxRequest, opts ...grpc.CallOption) (TrustedService_SubscribeNewTransactionClient, error)
 	Crypt(ctx context.Context, in *CryptRequest, opts ...grpc.CallOption) (*CryptResponse, error)
 	AddLocalTrustedTx(ctx context.Context, in *AddTrustedTxRequest, opts ...grpc.CallOption) (*AddTrustedTxResponse, error)
 	AddRemoteTrustedTx(ctx context.Context, in *AddTrustedTxRequest, opts ...grpc.CallOption) (*AddTrustedTxResponse, error)
@@ -167,6 +168,38 @@ func (c *trustedServiceClient) TxHas(ctx context.Context, in *TxHasRequest, opts
 	return out, nil
 }
 
+func (c *trustedServiceClient) SubscribeNewTransaction(ctx context.Context, in *SubscribeNewTxRequest, opts ...grpc.CallOption) (TrustedService_SubscribeNewTransactionClient, error) {
+	stream, err := c.cc.NewStream(ctx, &TrustedService_ServiceDesc.Streams[0], "/trusted.v1.TrustedService/SubscribeNewTransaction", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &trustedServiceSubscribeNewTransactionClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type TrustedService_SubscribeNewTransactionClient interface {
+	Recv() (*SubscribeNewTxResponse, error)
+	grpc.ClientStream
+}
+
+type trustedServiceSubscribeNewTransactionClient struct {
+	grpc.ClientStream
+}
+
+func (x *trustedServiceSubscribeNewTransactionClient) Recv() (*SubscribeNewTxResponse, error) {
+	m := new(SubscribeNewTxResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *trustedServiceClient) Crypt(ctx context.Context, in *CryptRequest, opts ...grpc.CallOption) (*CryptResponse, error) {
 	out := new(CryptResponse)
 	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/Crypt", in, out, opts...)
@@ -220,6 +253,7 @@ type TrustedServiceServer interface {
 	TxStatus(context.Context, *TxStatusRequest) (*TxStatusResponse, error)
 	TxGet(context.Context, *TxGetRequest) (*TxGetResponse, error)
 	TxHas(context.Context, *TxHasRequest) (*TxHasResponse, error)
+	SubscribeNewTransaction(*SubscribeNewTxRequest, TrustedService_SubscribeNewTransactionServer) error
 	Crypt(context.Context, *CryptRequest) (*CryptResponse, error)
 	AddLocalTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error)
 	AddRemoteTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error)
@@ -269,6 +303,9 @@ func (UnimplementedTrustedServiceServer) TxGet(context.Context, *TxGetRequest) (
 }
 func (UnimplementedTrustedServiceServer) TxHas(context.Context, *TxHasRequest) (*TxHasResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TxHas not implemented")
+}
+func (UnimplementedTrustedServiceServer) SubscribeNewTransaction(*SubscribeNewTxRequest, TrustedService_SubscribeNewTransactionServer) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeNewTransaction not implemented")
 }
 func (UnimplementedTrustedServiceServer) Crypt(context.Context, *CryptRequest) (*CryptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Crypt not implemented")
@@ -529,6 +566,27 @@ func _TrustedService_TxHas_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TrustedService_SubscribeNewTransaction_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SubscribeNewTxRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TrustedServiceServer).SubscribeNewTransaction(m, &trustedServiceSubscribeNewTransactionServer{stream})
+}
+
+type TrustedService_SubscribeNewTransactionServer interface {
+	Send(*SubscribeNewTxResponse) error
+	grpc.ServerStream
+}
+
+type trustedServiceSubscribeNewTransactionServer struct {
+	grpc.ServerStream
+}
+
+func (x *trustedServiceSubscribeNewTransactionServer) Send(m *SubscribeNewTxResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _TrustedService_Crypt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CryptRequest)
 	if err := dec(in); err != nil {
@@ -677,7 +735,13 @@ var TrustedService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TrustedService_FillBlock_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SubscribeNewTransaction",
+			Handler:       _TrustedService_SubscribeNewTransaction_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "trusted/v1/service.proto",
 }
 
