@@ -5,36 +5,79 @@ package trusted.v1;
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
-message HealthCheckResponse {
-  bool status = 1;
-  bytes error = 2;
+message SetPriceRequest {
+    bytes price = 1;
 }
 
-message AddTxRequest {
-    bytes txdata = 1;
+message GasPriceResponse {
+    bytes price = 1;
 }
 
-message AddTxResponse {
-    bytes txhash = 1;
-    string error = 2;
+message PendingNonceRequest {
+    bytes address = 1;
 }
 
-message StatusRequest {}
-
-message StatusResponse {
+message PendingNonceResponse {
+    uint64 nonce = 1;
+}
+message PoolStatResponse {
     uint64 pending = 1;
-    uint64 queue   = 2;
+    uint64 queue = 2;
+}
+message PoolContentRequest {
+    bytes address = 1;
 }
 
-message ResetRequest {}
-message ResetResponse {
-    string error = 1;
-}
-
-message PendingRequest {}
-
-message PendingResponse {
+message TransactionList {
     repeated bytes txs = 1;
+}
+
+message AccountTransactionList {
+    bytes address = 1;
+    TransactionList tx_list = 2;
+}
+
+message PoolContentResponse {
+    repeated AccountTransactionList pending_list = 1;
+    repeated AccountTransactionList queue_list = 2;
+}
+
+message PoolPendingResponse {
+    repeated AccountTransactionList pending_list = 1;
+}
+message PoolLocalsResponse {
+    repeated bytes address_list = 1;
+}
+
+message AddTxsRequest {
+    TransactionList tx_list = 1;
+}
+
+message AddTxsResponse {
+    repeated string errors = 1;
+}
+
+message TxStatusRequest {
+    repeated bytes tx_hashs = 1;
+}
+message TxStatusResponse {
+    repeated uint32 tx_status = 1;
+}
+
+message TxGetRequest {
+    bytes tx_hash = 1;
+}
+
+message TxGetResponse {
+    bytes tx = 1;
+}
+
+message TxHasRequest {
+    bytes tx_hash = 1;
+}
+
+message TxHasResponse {
+    bool has = 1;
 }
 
 message BlockRequest {
@@ -95,4 +138,12 @@ message AddTrustedTxRequest {
 message AddTrustedTxResponse {
     bytes hash = 1;
     bytes asset = 2;
+}
+
+message FillBlockRequest {
+    bytes params = 1;
+}
+
+message FillBlockResponse {
+    bytes block = 1;
 }

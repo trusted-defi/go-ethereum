@@ -7,17 +7,35 @@ import "google/protobuf/empty.proto";
 //import "google/protobuf/any.proto";
 import "trusted/v1/request_response.proto";
 
+
+
 service TrustedService {
-    rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
-    rpc AddTx(AddTxRequest) returns (AddTxResponse) {}
-    rpc Status(StatusRequest) returns (StatusResponse) {}
-    rpc Reset(ResetRequest) returns (ResetResponse) {}
-    rpc Pending(PendingRequest) returns (PendingResponse) {}
+//    rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
+//    rpc AddTx(AddTxRequest) returns (AddTxResponse) {}
+//    rpc Status(StatusRequest) returns (StatusResponse) {}
+//    rpc Reset(ResetRequest) returns (ResetResponse) {}
+//    rpc Pending(PendingRequest) returns (PendingResponse) {}
+
+    rpc PoolSetPrice(SetPriceRequest) returns (google.protobuf.Empty) {}
+    rpc PoolGasPrice(google.protobuf.Empty) returns (GasPriceResponse) {}
+    rpc PendingNonce(PendingNonceRequest) returns (PendingNonceResponse) {}
+    rpc PoolStat(google.protobuf.Empty) returns (PoolStatResponse) {}
+    rpc PoolContent(PoolContentRequest) returns (PoolContentResponse) {}
+    rpc PoolContentFrom(PoolContentRequest) returns (PoolContentResponse) {}
+    rpc PoolPending(google.protobuf.Empty) returns (PoolPendingResponse) {}
+    rpc PoolLocals(google.protobuf.Empty) returns (PoolLocalsResponse) {}
+    rpc AddLocalsTx(AddTxsRequest) returns (AddTxsResponse) {}
+    rpc AddRemoteTx(AddTxsRequest) returns (AddTxsResponse) {}
+    rpc TxStatus(TxStatusRequest) returns (TxStatusResponse) {}
+    rpc TxGet(TxGetRequest) returns (TxGetResponse) {}
+    rpc TxHas(TxHasRequest) returns (TxHasResponse) {}
 
 
     rpc Crypt(CryptRequest) returns (CryptResponse) {}
     rpc AddLocalTrustedTx(AddTrustedTxRequest) returns (AddTrustedTxResponse) {}
     rpc AddRemoteTrustedTx(AddTrustedTxRequest) returns (AddTrustedTxResponse) {}
+
+    rpc FillBlock(FillBlockRequest) returns (FillBlockResponse) {}
 }
 
 

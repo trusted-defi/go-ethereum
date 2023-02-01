@@ -23,14 +23,23 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TrustedServiceClient interface {
-	HealthCheck(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthCheckResponse, error)
-	AddTx(ctx context.Context, in *AddTxRequest, opts ...grpc.CallOption) (*AddTxResponse, error)
-	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
-	Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error)
-	Pending(ctx context.Context, in *PendingRequest, opts ...grpc.CallOption) (*PendingResponse, error)
+	PoolSetPrice(ctx context.Context, in *SetPriceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	PoolGasPrice(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GasPriceResponse, error)
+	PendingNonce(ctx context.Context, in *PendingNonceRequest, opts ...grpc.CallOption) (*PendingNonceResponse, error)
+	PoolStat(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PoolStatResponse, error)
+	PoolContent(ctx context.Context, in *PoolContentRequest, opts ...grpc.CallOption) (*PoolContentResponse, error)
+	PoolContentFrom(ctx context.Context, in *PoolContentRequest, opts ...grpc.CallOption) (*PoolContentResponse, error)
+	PoolPending(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PoolPendingResponse, error)
+	PoolLocals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PoolLocalsResponse, error)
+	AddLocalsTx(ctx context.Context, in *AddTxsRequest, opts ...grpc.CallOption) (*AddTxsResponse, error)
+	AddRemoteTx(ctx context.Context, in *AddTxsRequest, opts ...grpc.CallOption) (*AddTxsResponse, error)
+	TxStatus(ctx context.Context, in *TxStatusRequest, opts ...grpc.CallOption) (*TxStatusResponse, error)
+	TxGet(ctx context.Context, in *TxGetRequest, opts ...grpc.CallOption) (*TxGetResponse, error)
+	TxHas(ctx context.Context, in *TxHasRequest, opts ...grpc.CallOption) (*TxHasResponse, error)
 	Crypt(ctx context.Context, in *CryptRequest, opts ...grpc.CallOption) (*CryptResponse, error)
 	AddLocalTrustedTx(ctx context.Context, in *AddTrustedTxRequest, opts ...grpc.CallOption) (*AddTrustedTxResponse, error)
 	AddRemoteTrustedTx(ctx context.Context, in *AddTrustedTxRequest, opts ...grpc.CallOption) (*AddTrustedTxResponse, error)
+	FillBlock(ctx context.Context, in *FillBlockRequest, opts ...grpc.CallOption) (*FillBlockResponse, error)
 }
 
 type trustedServiceClient struct {
@@ -41,45 +50,117 @@ func NewTrustedServiceClient(cc grpc.ClientConnInterface) TrustedServiceClient {
 	return &trustedServiceClient{cc}
 }
 
-func (c *trustedServiceClient) HealthCheck(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
-	out := new(HealthCheckResponse)
-	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/HealthCheck", in, out, opts...)
+func (c *trustedServiceClient) PoolSetPrice(ctx context.Context, in *SetPriceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/PoolSetPrice", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *trustedServiceClient) AddTx(ctx context.Context, in *AddTxRequest, opts ...grpc.CallOption) (*AddTxResponse, error) {
-	out := new(AddTxResponse)
-	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/AddTx", in, out, opts...)
+func (c *trustedServiceClient) PoolGasPrice(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GasPriceResponse, error) {
+	out := new(GasPriceResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/PoolGasPrice", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *trustedServiceClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
-	out := new(StatusResponse)
-	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/Status", in, out, opts...)
+func (c *trustedServiceClient) PendingNonce(ctx context.Context, in *PendingNonceRequest, opts ...grpc.CallOption) (*PendingNonceResponse, error) {
+	out := new(PendingNonceResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/PendingNonce", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *trustedServiceClient) Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error) {
-	out := new(ResetResponse)
-	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/Reset", in, out, opts...)
+func (c *trustedServiceClient) PoolStat(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PoolStatResponse, error) {
+	out := new(PoolStatResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/PoolStat", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *trustedServiceClient) Pending(ctx context.Context, in *PendingRequest, opts ...grpc.CallOption) (*PendingResponse, error) {
-	out := new(PendingResponse)
-	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/Pending", in, out, opts...)
+func (c *trustedServiceClient) PoolContent(ctx context.Context, in *PoolContentRequest, opts ...grpc.CallOption) (*PoolContentResponse, error) {
+	out := new(PoolContentResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/PoolContent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) PoolContentFrom(ctx context.Context, in *PoolContentRequest, opts ...grpc.CallOption) (*PoolContentResponse, error) {
+	out := new(PoolContentResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/PoolContentFrom", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) PoolPending(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PoolPendingResponse, error) {
+	out := new(PoolPendingResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/PoolPending", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) PoolLocals(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PoolLocalsResponse, error) {
+	out := new(PoolLocalsResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/PoolLocals", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) AddLocalsTx(ctx context.Context, in *AddTxsRequest, opts ...grpc.CallOption) (*AddTxsResponse, error) {
+	out := new(AddTxsResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/AddLocalsTx", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) AddRemoteTx(ctx context.Context, in *AddTxsRequest, opts ...grpc.CallOption) (*AddTxsResponse, error) {
+	out := new(AddTxsResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/AddRemoteTx", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) TxStatus(ctx context.Context, in *TxStatusRequest, opts ...grpc.CallOption) (*TxStatusResponse, error) {
+	out := new(TxStatusResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/TxStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) TxGet(ctx context.Context, in *TxGetRequest, opts ...grpc.CallOption) (*TxGetResponse, error) {
+	out := new(TxGetResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/TxGet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) TxHas(ctx context.Context, in *TxHasRequest, opts ...grpc.CallOption) (*TxHasResponse, error) {
+	out := new(TxHasResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/TxHas", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,18 +194,36 @@ func (c *trustedServiceClient) AddRemoteTrustedTx(ctx context.Context, in *AddTr
 	return out, nil
 }
 
+func (c *trustedServiceClient) FillBlock(ctx context.Context, in *FillBlockRequest, opts ...grpc.CallOption) (*FillBlockResponse, error) {
+	out := new(FillBlockResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/FillBlock", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TrustedServiceServer is the server API for TrustedService service.
 // All implementations must embed UnimplementedTrustedServiceServer
 // for forward compatibility
 type TrustedServiceServer interface {
-	HealthCheck(context.Context, *emptypb.Empty) (*HealthCheckResponse, error)
-	AddTx(context.Context, *AddTxRequest) (*AddTxResponse, error)
-	Status(context.Context, *StatusRequest) (*StatusResponse, error)
-	Reset(context.Context, *ResetRequest) (*ResetResponse, error)
-	Pending(context.Context, *PendingRequest) (*PendingResponse, error)
+	PoolSetPrice(context.Context, *SetPriceRequest) (*emptypb.Empty, error)
+	PoolGasPrice(context.Context, *emptypb.Empty) (*GasPriceResponse, error)
+	PendingNonce(context.Context, *PendingNonceRequest) (*PendingNonceResponse, error)
+	PoolStat(context.Context, *emptypb.Empty) (*PoolStatResponse, error)
+	PoolContent(context.Context, *PoolContentRequest) (*PoolContentResponse, error)
+	PoolContentFrom(context.Context, *PoolContentRequest) (*PoolContentResponse, error)
+	PoolPending(context.Context, *emptypb.Empty) (*PoolPendingResponse, error)
+	PoolLocals(context.Context, *emptypb.Empty) (*PoolLocalsResponse, error)
+	AddLocalsTx(context.Context, *AddTxsRequest) (*AddTxsResponse, error)
+	AddRemoteTx(context.Context, *AddTxsRequest) (*AddTxsResponse, error)
+	TxStatus(context.Context, *TxStatusRequest) (*TxStatusResponse, error)
+	TxGet(context.Context, *TxGetRequest) (*TxGetResponse, error)
+	TxHas(context.Context, *TxHasRequest) (*TxHasResponse, error)
 	Crypt(context.Context, *CryptRequest) (*CryptResponse, error)
 	AddLocalTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error)
 	AddRemoteTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error)
+	FillBlock(context.Context, *FillBlockRequest) (*FillBlockResponse, error)
 	mustEmbedUnimplementedTrustedServiceServer()
 }
 
@@ -132,20 +231,44 @@ type TrustedServiceServer interface {
 type UnimplementedTrustedServiceServer struct {
 }
 
-func (UnimplementedTrustedServiceServer) HealthCheck(context.Context, *emptypb.Empty) (*HealthCheckResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
+func (UnimplementedTrustedServiceServer) PoolSetPrice(context.Context, *SetPriceRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoolSetPrice not implemented")
 }
-func (UnimplementedTrustedServiceServer) AddTx(context.Context, *AddTxRequest) (*AddTxResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddTx not implemented")
+func (UnimplementedTrustedServiceServer) PoolGasPrice(context.Context, *emptypb.Empty) (*GasPriceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoolGasPrice not implemented")
 }
-func (UnimplementedTrustedServiceServer) Status(context.Context, *StatusRequest) (*StatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+func (UnimplementedTrustedServiceServer) PendingNonce(context.Context, *PendingNonceRequest) (*PendingNonceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PendingNonce not implemented")
 }
-func (UnimplementedTrustedServiceServer) Reset(context.Context, *ResetRequest) (*ResetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Reset not implemented")
+func (UnimplementedTrustedServiceServer) PoolStat(context.Context, *emptypb.Empty) (*PoolStatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoolStat not implemented")
 }
-func (UnimplementedTrustedServiceServer) Pending(context.Context, *PendingRequest) (*PendingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Pending not implemented")
+func (UnimplementedTrustedServiceServer) PoolContent(context.Context, *PoolContentRequest) (*PoolContentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoolContent not implemented")
+}
+func (UnimplementedTrustedServiceServer) PoolContentFrom(context.Context, *PoolContentRequest) (*PoolContentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoolContentFrom not implemented")
+}
+func (UnimplementedTrustedServiceServer) PoolPending(context.Context, *emptypb.Empty) (*PoolPendingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoolPending not implemented")
+}
+func (UnimplementedTrustedServiceServer) PoolLocals(context.Context, *emptypb.Empty) (*PoolLocalsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoolLocals not implemented")
+}
+func (UnimplementedTrustedServiceServer) AddLocalsTx(context.Context, *AddTxsRequest) (*AddTxsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddLocalsTx not implemented")
+}
+func (UnimplementedTrustedServiceServer) AddRemoteTx(context.Context, *AddTxsRequest) (*AddTxsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddRemoteTx not implemented")
+}
+func (UnimplementedTrustedServiceServer) TxStatus(context.Context, *TxStatusRequest) (*TxStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TxStatus not implemented")
+}
+func (UnimplementedTrustedServiceServer) TxGet(context.Context, *TxGetRequest) (*TxGetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TxGet not implemented")
+}
+func (UnimplementedTrustedServiceServer) TxHas(context.Context, *TxHasRequest) (*TxHasResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TxHas not implemented")
 }
 func (UnimplementedTrustedServiceServer) Crypt(context.Context, *CryptRequest) (*CryptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Crypt not implemented")
@@ -155,6 +278,9 @@ func (UnimplementedTrustedServiceServer) AddLocalTrustedTx(context.Context, *Add
 }
 func (UnimplementedTrustedServiceServer) AddRemoteTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddRemoteTrustedTx not implemented")
+}
+func (UnimplementedTrustedServiceServer) FillBlock(context.Context, *FillBlockRequest) (*FillBlockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FillBlock not implemented")
 }
 func (UnimplementedTrustedServiceServer) mustEmbedUnimplementedTrustedServiceServer() {}
 
@@ -169,92 +295,236 @@ func RegisterTrustedServiceServer(s grpc.ServiceRegistrar, srv TrustedServiceSer
 	s.RegisterService(&TrustedService_ServiceDesc, srv)
 }
 
-func _TrustedService_HealthCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TrustedService_PoolSetPrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetPriceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).PoolSetPrice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/PoolSetPrice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).PoolSetPrice(ctx, req.(*SetPriceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_PoolGasPrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TrustedServiceServer).HealthCheck(ctx, in)
+		return srv.(TrustedServiceServer).PoolGasPrice(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/trusted.v1.TrustedService/HealthCheck",
+		FullMethod: "/trusted.v1.TrustedService/PoolGasPrice",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrustedServiceServer).HealthCheck(ctx, req.(*emptypb.Empty))
+		return srv.(TrustedServiceServer).PoolGasPrice(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TrustedService_AddTx_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddTxRequest)
+func _TrustedService_PendingNonce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PendingNonceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TrustedServiceServer).AddTx(ctx, in)
+		return srv.(TrustedServiceServer).PendingNonce(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/trusted.v1.TrustedService/AddTx",
+		FullMethod: "/trusted.v1.TrustedService/PendingNonce",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrustedServiceServer).AddTx(ctx, req.(*AddTxRequest))
+		return srv.(TrustedServiceServer).PendingNonce(ctx, req.(*PendingNonceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TrustedService_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StatusRequest)
+func _TrustedService_PoolStat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TrustedServiceServer).Status(ctx, in)
+		return srv.(TrustedServiceServer).PoolStat(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/trusted.v1.TrustedService/Status",
+		FullMethod: "/trusted.v1.TrustedService/PoolStat",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrustedServiceServer).Status(ctx, req.(*StatusRequest))
+		return srv.(TrustedServiceServer).PoolStat(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TrustedService_Reset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResetRequest)
+func _TrustedService_PoolContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PoolContentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TrustedServiceServer).Reset(ctx, in)
+		return srv.(TrustedServiceServer).PoolContent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/trusted.v1.TrustedService/Reset",
+		FullMethod: "/trusted.v1.TrustedService/PoolContent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrustedServiceServer).Reset(ctx, req.(*ResetRequest))
+		return srv.(TrustedServiceServer).PoolContent(ctx, req.(*PoolContentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TrustedService_Pending_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PendingRequest)
+func _TrustedService_PoolContentFrom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PoolContentRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TrustedServiceServer).Pending(ctx, in)
+		return srv.(TrustedServiceServer).PoolContentFrom(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/trusted.v1.TrustedService/Pending",
+		FullMethod: "/trusted.v1.TrustedService/PoolContentFrom",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrustedServiceServer).Pending(ctx, req.(*PendingRequest))
+		return srv.(TrustedServiceServer).PoolContentFrom(ctx, req.(*PoolContentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_PoolPending_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).PoolPending(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/PoolPending",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).PoolPending(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_PoolLocals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).PoolLocals(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/PoolLocals",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).PoolLocals(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_AddLocalsTx_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddTxsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).AddLocalsTx(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/AddLocalsTx",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).AddLocalsTx(ctx, req.(*AddTxsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_AddRemoteTx_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddTxsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).AddRemoteTx(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/AddRemoteTx",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).AddRemoteTx(ctx, req.(*AddTxsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_TxStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TxStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).TxStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/TxStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).TxStatus(ctx, req.(*TxStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_TxGet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TxGetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).TxGet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/TxGet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).TxGet(ctx, req.(*TxGetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_TxHas_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TxHasRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).TxHas(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/TxHas",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).TxHas(ctx, req.(*TxHasRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -313,6 +583,24 @@ func _TrustedService_AddRemoteTrustedTx_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TrustedService_FillBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FillBlockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).FillBlock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/FillBlock",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).FillBlock(ctx, req.(*FillBlockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TrustedService_ServiceDesc is the grpc.ServiceDesc for TrustedService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -321,24 +609,56 @@ var TrustedService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TrustedServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "HealthCheck",
-			Handler:    _TrustedService_HealthCheck_Handler,
+			MethodName: "PoolSetPrice",
+			Handler:    _TrustedService_PoolSetPrice_Handler,
 		},
 		{
-			MethodName: "AddTx",
-			Handler:    _TrustedService_AddTx_Handler,
+			MethodName: "PoolGasPrice",
+			Handler:    _TrustedService_PoolGasPrice_Handler,
 		},
 		{
-			MethodName: "Status",
-			Handler:    _TrustedService_Status_Handler,
+			MethodName: "PendingNonce",
+			Handler:    _TrustedService_PendingNonce_Handler,
 		},
 		{
-			MethodName: "Reset",
-			Handler:    _TrustedService_Reset_Handler,
+			MethodName: "PoolStat",
+			Handler:    _TrustedService_PoolStat_Handler,
 		},
 		{
-			MethodName: "Pending",
-			Handler:    _TrustedService_Pending_Handler,
+			MethodName: "PoolContent",
+			Handler:    _TrustedService_PoolContent_Handler,
+		},
+		{
+			MethodName: "PoolContentFrom",
+			Handler:    _TrustedService_PoolContentFrom_Handler,
+		},
+		{
+			MethodName: "PoolPending",
+			Handler:    _TrustedService_PoolPending_Handler,
+		},
+		{
+			MethodName: "PoolLocals",
+			Handler:    _TrustedService_PoolLocals_Handler,
+		},
+		{
+			MethodName: "AddLocalsTx",
+			Handler:    _TrustedService_AddLocalsTx_Handler,
+		},
+		{
+			MethodName: "AddRemoteTx",
+			Handler:    _TrustedService_AddRemoteTx_Handler,
+		},
+		{
+			MethodName: "TxStatus",
+			Handler:    _TrustedService_TxStatus_Handler,
+		},
+		{
+			MethodName: "TxGet",
+			Handler:    _TrustedService_TxGet_Handler,
+		},
+		{
+			MethodName: "TxHas",
+			Handler:    _TrustedService_TxHas_Handler,
 		},
 		{
 			MethodName: "Crypt",
@@ -351,6 +671,10 @@ var TrustedService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddRemoteTrustedTx",
 			Handler:    _TrustedService_AddRemoteTrustedTx_Handler,
+		},
+		{
+			MethodName: "FillBlock",
+			Handler:    _TrustedService_FillBlock_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
