@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	trusted "github.com/ethereum/go-ethereum/trusted/protocol/generate/trusted/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"math/big"
 	"net"
 )
 
@@ -39,13 +41,63 @@ func (s *ChainService) GetBlock(ctx context.Context, req *trusted.BlockRequest) 
 	return res, nil
 }
 func (s *ChainService) GetBalance(ctx context.Context, req *trusted.BalanceRequest) (*trusted.BalanceResponse, error) {
-	//addr := common.BytesToAddress(req.Address)
-	//block := new(big.Int).SetBytes(req.BlockNum)
+	var db *state.StateDB
+	var blockheight *big.Int
+	var err error
+	var res = new(trusted.BalanceResponse)
+	addr := common.BytesToAddress(req.Address)
+	if len(req.BlockNum) > 0 {
+		blockheight = new(big.Int).SetBytes(req.BlockNum)
+	}
+	if blockheight == nil {
+		// get latest state
+		db, err = s.chain.State()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		header := s.chain.GetHeaderByNumber(blockheight.Uint64())
+		if header == nil {
+			return nil, errors.New("block not found")
+		}
+		db, err = s.chain.StateAt(header.Root)
+		if err != nil {
+			return nil, err
+		}
+	}
+	balance := db.GetBalance(addr)
+	res.Balance = balance.Bytes()
 
-	return nil, status.Errorf(codes.Unimplemented, "method GetBalance not implemented")
+	return res, nil
 }
 func (s *ChainService) GetNonce(ctx context.Context, req *trusted.NonceRequest) (*trusted.NonceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetNonce not implemented")
+	var db *state.StateDB
+	var blockheight *big.Int
+	var err error
+	var res = new(trusted.NonceResponse)
+	addr := common.BytesToAddress(req.Address)
+	if len(req.BlockNum) > 0 {
+		blockheight = new(big.Int).SetBytes(req.BlockNum)
+	}
+	if blockheight == nil {
+		// get latest state
+		db, err = s.chain.State()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		header := s.chain.GetHeaderByNumber(blockheight.Uint64())
+		if header == nil {
+			return nil, errors.New("block not found")
+		}
+		db, err = s.chain.StateAt(header.Root)
+		if err != nil {
+			return nil, err
+		}
+	}
+	res.Nonce = db.GetNonce(addr)
+
+	return res, nil
 }
 func (s *ChainService) CurrentBlock(ctx context.Context, req *trusted.CurrentBlockRequest) (*trusted.CurrentBlockResponse, error) {
 	res := new(trusted.CurrentBlockResponse)
