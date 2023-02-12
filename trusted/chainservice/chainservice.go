@@ -158,7 +158,7 @@ func RegisterService(server *grpc.Server, chain *core.BlockChain) {
 }
 
 func StartChainService(chain *core.BlockChain) {
-	lis, err := net.Listen("tcp", ":38000")
+	lis, err := net.Listen("tcp", ":3801")
 	if err != nil {
 		fmt.Printf("failed to listen: %v", err)
 		return

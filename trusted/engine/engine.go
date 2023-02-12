@@ -6,11 +6,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	trustedv1 "github.com/ethereum/go-ethereum/trusted/protocol/generate/trusted/v1"
 	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
+
 	"math/big"
 )
 
@@ -20,9 +21,9 @@ type TrustedEngineClient struct {
 
 func NewTrustedEngineClient() *TrustedEngineClient {
 	c := new(TrustedEngineClient)
-	client, err := grpc.Dial("127.0.0.1:38000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := grpc.Dial(":3802", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatal("netserver connect failed", "err", err)
+		log.Error("netserver connect failed", "err", err)
 	}
 
 	c.client = trustedv1.NewTrustedServiceClient(client)
@@ -57,6 +58,7 @@ func (t *TrustedEngineClient) Nonce(addr common.Address) uint64 {
 func (t *TrustedEngineClient) Stat() (int, int) {
 	res, err := t.client.PoolStat(context.Background(), nil)
 	if err != nil {
+		log.Info("trusted stat", "err", err)
 		return 0, 0
 	}
 	return int(res.Pending), int(res.Queue)
