@@ -3,6 +3,7 @@ package engine
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	trustedv1 "github.com/ethereum/go-ethereum/trusted/protocol/generate/trusted/v1"
 )
 
@@ -21,10 +22,14 @@ func parseHashesToBytes(hashs []common.Hash) [][]byte {
 }
 
 func parseTxsToList(txs []*types.Transaction) *trustedv1.TransactionList {
+	var err error
 	list := new(trustedv1.TransactionList)
 	list.Txs = make([][]byte, len(txs))
 	for i, tx := range txs {
-		list.Txs[i], _ = tx.MarshalBinary()
+		list.Txs[i], err = tx.MarshalBinary()
+		if err != nil {
+			log.Error("tx marshal binary failed", "err", err)
+		}
 	}
 	return list
 }

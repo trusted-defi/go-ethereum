@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"math/big"
 )
@@ -56,7 +57,7 @@ func (t *TrustedEngineClient) Nonce(addr common.Address) uint64 {
 }
 
 func (t *TrustedEngineClient) Stat() (int, int) {
-	res, err := t.client.PoolStat(context.Background(), nil)
+	res, err := t.client.PoolStat(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		log.Info("trusted stat", "err", err)
 		return 0, 0
@@ -94,7 +95,7 @@ func (t *TrustedEngineClient) ContentFrom(addr common.Address) (types.Transactio
 
 func (t *TrustedEngineClient) Pending() map[common.Address]types.Transactions {
 	pending := make(map[common.Address]types.Transactions)
-	res, err := t.client.PoolPending(context.Background(), nil)
+	res, err := t.client.PoolPending(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		return pending
 	}
@@ -126,9 +127,12 @@ func (t *TrustedEngineClient) AddLocals(txs []*types.Transaction) []error {
 		}
 		return errs
 	}
-	for i := 0; i < len(errs); i++ {
-		errs[i] = errors.New(res.Errors[i])
+	for i, err := range res.Errors {
+		if len(err) > 0 {
+			errs[i] = errors.New(err)
+		}
 	}
+
 	return errs
 }
 
