@@ -213,10 +213,12 @@ func (t *TrustedEngineClient) Crypt(data []byte) ([]byte, error) {
 	req := new(trustedv1.CryptRequest)
 	req.Data = common.CopyBytes(data)
 	req.Method = 1
+	log.Debug("before crypt", "tx", common.Bytes2Hex(data))
 	res, err := t.client.Crypt(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
+	log.Debug("after crypt", "tx", common.Bytes2Hex(res.Crypted))
 	return res.Crypted, nil
 }
 
@@ -228,7 +230,7 @@ type SendTrustedTransacionResult struct {
 func (t *TrustedEngineClient) AddLocalTrustedTx(txdata []byte) (*SendTrustedTransacionResult, error) {
 	req := new(trustedv1.AddTrustedTxRequest)
 	req.CtyptedTx = common.CopyBytes(txdata)
-
+	log.Debug("add local trusted tx", "tx", common.Bytes2Hex(req.CtyptedTx))
 	res, err := t.client.AddLocalTrustedTx(context.Background(), req)
 	if err != nil {
 		return nil, err
@@ -236,6 +238,7 @@ func (t *TrustedEngineClient) AddLocalTrustedTx(txdata []byte) (*SendTrustedTran
 	result := new(SendTrustedTransacionResult)
 	result.Asset = common.CopyBytes(res.Asset)
 	result.Hash = common.BytesToHash(res.Hash)
+	log.Debug("add local trusted tx", "txhash", result.Hash)
 	return result, nil
 }
 
