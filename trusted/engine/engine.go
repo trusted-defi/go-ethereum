@@ -223,8 +223,8 @@ func (t *TrustedEngineClient) Crypt(data []byte) ([]byte, error) {
 }
 
 type SendTrustedTransacionResult struct {
-	Hash  common.Hash   `json:"hash"`  // transaction hash
-	Asset hexutil.Bytes `json:"asset"` // verification for tx add by trusted engine
+	Hash   common.Hash   `json:"hash"`   // transaction hash
+	Report hexutil.Bytes `json:"report"` // verification for tx add by trusted engine
 }
 
 func (t *TrustedEngineClient) AddLocalTrustedTx(txdata []byte) (*SendTrustedTransacionResult, error) {
@@ -236,7 +236,7 @@ func (t *TrustedEngineClient) AddLocalTrustedTx(txdata []byte) (*SendTrustedTran
 		return nil, err
 	}
 	result := new(SendTrustedTransacionResult)
-	result.Asset = common.CopyBytes(res.Asset)
+	result.Report = common.CopyBytes(res.Asset)
 	result.Hash = common.BytesToHash(res.Hash)
 	log.Debug("add local trusted tx", "txhash", result.Hash)
 	return result, nil
@@ -251,7 +251,7 @@ func (t *TrustedEngineClient) AddRemoteTrustedTx(txdata []byte) (*SendTrustedTra
 		return nil, err
 	}
 	result := new(SendTrustedTransacionResult)
-	result.Asset = common.CopyBytes(res.Asset)
+	result.Report = common.CopyBytes(res.Asset)
 	result.Hash = common.BytesToHash(res.Hash)
 	return result, nil
 }
