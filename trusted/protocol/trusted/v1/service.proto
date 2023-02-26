@@ -15,7 +15,7 @@ service TrustedService {
 //    rpc Status(StatusRequest) returns (StatusResponse) {}
 //    rpc Reset(ResetRequest) returns (ResetResponse) {}
 //    rpc Pending(PendingRequest) returns (PendingResponse) {}
-
+    rpc ServiceReady(google.protobuf.Empty) returns (ServiceReadyResponse) {}
     rpc PoolSetPrice(SetPriceRequest) returns (google.protobuf.Empty) {}
     rpc PoolGasPrice(google.protobuf.Empty) returns (GasPriceResponse) {}
     rpc PendingNonce(PendingNonceRequest) returns (PendingNonceResponse) {}
@@ -33,14 +33,15 @@ service TrustedService {
 
 
     rpc Crypt(CryptRequest) returns (CryptResponse) {}
-    rpc AddLocalTrustedTx(AddTrustedTxRequest) returns (AddTrustedTxResponse) {}
-    rpc AddRemoteTrustedTx(AddTrustedTxRequest) returns (AddTrustedTxResponse) {}
+    rpc AddLocalTrustedTxs(AddTrustedTxsRequest) returns (AddTrustedTxsResponse) {}
+    rpc AddRemoteTrustedTxs(AddTrustedTxsRequest) returns (AddTrustedTxsResponse) {}
 
     rpc FillBlock(FillBlockRequest) returns (FillBlockResponse) {}
 }
 
 
 service ChainService {
+    rpc ServiceReady(google.protobuf.Empty) returns (ServiceReadyResponse) {}
     rpc GetBlock(BlockRequest) returns (BlockResponse) {}
     rpc GetBalance(BalanceRequest) returns (BalanceResponse) {}
     rpc GetNonce(NonceRequest) returns (NonceResponse) {}

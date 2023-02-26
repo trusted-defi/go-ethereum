@@ -292,6 +292,10 @@ func (b *EthAPIBackend) SubscribeNewTxsEvent(ch chan<- core.NewTxsEvent) event.S
 	return b.eth.TxPool().SubscribeNewTxsEvent(ch)
 }
 
+func (b *EthAPIBackend) SubscribeNewTrustedTxsEvent(ch chan<- core.NewTrustedTxsEvent) event.Subscription {
+	return b.eth.TxPool().SubscribeNewTrustedTxsEvent(ch)
+}
+
 func (b *EthAPIBackend) SyncProgress() ethereum.SyncProgress {
 	return b.eth.Downloader().Progress()
 }

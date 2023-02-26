@@ -16,6 +16,13 @@ import (
 	"math/big"
 )
 
+var (
+	ErrInvalidRemoteReport = errors.New("invalid remote report")
+	ErrGetRemoteReport     = errors.New("get remote report failed")
+	ErrVerifyFailed        = errors.New("verify failed")
+	ErrClientNotReady      = errors.New("trust engine not ready")
+)
+
 type TrustedEngineClient struct {
 	client trustedv1.TrustedServiceClient
 }
@@ -225,35 +232,104 @@ func (t *TrustedEngineClient) Crypt(data []byte) ([]byte, error) {
 type SendTrustedTransacionResult struct {
 	Hash   common.Hash   `json:"hash"`   // transaction hash
 	Report hexutil.Bytes `json:"report"` // verification for tx add by trusted engine
+	Error  error         `json:"-"`
 }
 
-func (t *TrustedEngineClient) AddLocalTrustedTx(txdata []byte) (*SendTrustedTransacionResult, error) {
-	req := new(trustedv1.AddTrustedTxRequest)
-	req.CtyptedTx = common.CopyBytes(txdata)
-	log.Debug("add local trusted tx", "tx", common.Bytes2Hex(req.CtyptedTx))
-	res, err := t.client.AddLocalTrustedTx(context.Background(), req)
+func (t *TrustedEngineClient) AddLocalTrustedTx(tx trustedtype.TrustedCryptTx) (*SendTrustedTransacionResult, error) {
+	req := new(trustedv1.AddTrustedTxsRequest)
+	req.CtyptedTxs = parseTrustedTxsToList([]trustedtype.TrustedCryptTx{tx})
+
+	//log.Debug("add local trusted tx", "tx", common.Bytes2Hex(txdata))
+	resp, err := t.client.AddLocalTrustedTxs(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
-	result := new(SendTrustedTransacionResult)
-	result.Report = common.CopyBytes(res.Asset)
-	result.Hash = common.BytesToHash(res.Hash)
-	log.Debug("add local trusted tx", "txhash", result.Hash)
-	return result, nil
+	res := new(SendTrustedTransacionResult)
+	result := resp.Results[0]
+	if len(result.Error) != 0 {
+		res.Error = errors.New(result.Error)
+		return res, errors.New(result.Error)
+	}
+	res.Report = common.CopyBytes(result.Asset)
+	res.Hash = common.BytesToHash(result.Hash)
+	res.Error = nil
+	log.Debug("add local trusted tx", "txhash", res.Hash)
+	return res, nil
 }
 
-func (t *TrustedEngineClient) AddRemoteTrustedTx(txdata []byte) (*SendTrustedTransacionResult, error) {
-	req := new(trustedv1.AddTrustedTxRequest)
-	req.CtyptedTx = common.CopyBytes(txdata)
-
-	res, err := t.client.AddLocalTrustedTx(context.Background(), req)
+func (t *TrustedEngineClient) AddRemoteTrustedTx(txs []trustedtype.TrustedCryptTx) ([]*SendTrustedTransacionResult, error) {
+	req := new(trustedv1.AddTrustedTxsRequest)
+	req.CtyptedTxs = parseTrustedTxsToList(txs)
+	resp, err := t.client.AddRemoteTrustedTxs(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
-	result := new(SendTrustedTransacionResult)
-	result.Report = common.CopyBytes(res.Asset)
-	result.Hash = common.BytesToHash(res.Hash)
-	return result, nil
+	res := make([]*SendTrustedTransacionResult, len(txs))
+	for _, response := range resp.Results {
+		result := new(SendTrustedTransacionResult)
+		if len(response.Error) > 0 {
+			result.Error = errors.New(response.Error)
+		} else {
+			result.Report = common.CopyBytes(response.Asset)
+			result.Hash = common.BytesToHash(response.Hash)
+			result.Error = nil
+		}
+	}
+	return res, nil
+}
+
+// CheckSecretKey check secretkey already exist or not.
+func (t *TrustedEngineClient) CheckSecretKey() (bool, error) {
+	//todo: implement
+	return true, nil
+}
+
+// GetAuthData generate a remote report at begin of a auth-verify process.
+func (t *TrustedEngineClient) GetAuthData(peerId string) ([]byte, error) {
+	//todo: implement
+	return []byte{}, ErrClientNotReady
+}
+
+// VerifyAuth verify auth data received from remote peer
+func (t *TrustedEngineClient) VerifyAuth(authData []byte, peerId string) error {
+	//todo: implement
+	return ErrClientNotReady
+}
+
+// GetVerifyData generate a remote report used to verify remote peer..
+func (t *TrustedEngineClient) GetVerifyData(peerId string) ([]byte, error) {
+	//todo: implement
+	return nil, ErrClientNotReady
+}
+
+// VerifyRemoteVerify verify remote verify-data received from remote peer..
+func (t *TrustedEngineClient) VerifyRemoteVerify(verifyData []byte, peerId string) error {
+	//todo: implement
+	return ErrClientNotReady
+}
+
+// GetRequestKeyData generate a remote report used to request secret key.
+func (t *TrustedEngineClient) GetRequestKeyData(peerId string) ([]byte, error) {
+	//todo: implement
+	return nil, ErrClientNotReady
+}
+
+// VerifyRequestKeyData verify remote verify-data received from remote peer..
+func (t *TrustedEngineClient) VerifyRequestKeyData(request []byte, peerId string) error {
+	//todo: implement
+	return ErrClientNotReady
+}
+
+// GetResponseKeyData generate a remote report used to request secret key.
+func (t *TrustedEngineClient) GetResponseKeyData(peerId string) ([]byte, error) {
+	//todo: implement
+	return nil, ErrClientNotReady
+}
+
+// VerifyResponseKey verify remote verify-data received from remote peer..
+func (t *TrustedEngineClient) VerifyResponseKey(response []byte, peerId string) error {
+	//todo: implement
+	return ErrClientNotReady
 }
 
 type TrustedPool interface {

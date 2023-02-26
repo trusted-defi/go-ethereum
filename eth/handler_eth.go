@@ -75,6 +75,10 @@ func (h *ethHandler) Handle(peer *eth.Peer, packet eth.Packet) error {
 
 	case *eth.PooledTransactionsPacket:
 		return h.txFetcher.Enqueue(peer.ID(), *packet, true)
+	case *eth.NewTrustedTransactionsPacket:
+		// todo: trusted-defi add trusted tx to trusted engine.
+		h.txpool.AddRemotesTrusted(*packet)
+		return nil
 
 	default:
 		return fmt.Errorf("unexpected eth packet type: %T", packet)

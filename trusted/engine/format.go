@@ -5,6 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	trustedv1 "github.com/ethereum/go-ethereum/trusted/protocol/generate/trusted/v1"
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 )
 
 func parseToTransaction(txdata []byte) *types.Transaction {
@@ -32,6 +33,14 @@ func parseTxsToList(txs []*types.Transaction) *trustedv1.TransactionList {
 		}
 	}
 	return list
+}
+
+func parseTrustedTxsToList(txs []trustedtype.TrustedCryptTx) [][]byte {
+	cryptedTxs := make([][]byte, len(txs))
+	for i, tx := range txs {
+		cryptedTxs[i] = common.CopyBytes(tx[:])
+	}
+	return cryptedTxs
 }
 
 func parseAccountTransactionsToMap(accountsTx []*trustedv1.AccountTransactionList) map[common.Address]types.Transactions {

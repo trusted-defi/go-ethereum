@@ -526,3 +526,20 @@ func handlePooledTransactions66(backend Backend, msg Decoder, peer *Peer) error 
 
 	return backend.Handle(peer, &txs.PooledTransactionsPacket)
 }
+
+func handleTrustedTransactionsMsg(backend Backend, msg Decoder, peer *Peer) error {
+	// New transaction announcement arrived, make sure we have
+	// a valid and fresh chain to handle them
+	if !backend.AcceptTxs() {
+		return nil
+	}
+	ann := new(NewTrustedTransactionsPacket)
+	if err := msg.Decode(ann); err != nil {
+		return fmt.Errorf("%w: message %v: %v", errDecode, msg, err)
+	}
+	// Schedule all the unknown hashes for retrieval
+	for _, trustedtx := range *ann {
+		peer.markTransaction(trustedtx.Hash())
+	}
+	return backend.Handle(peer, ann)
+}

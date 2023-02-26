@@ -25,7 +25,7 @@ import (
 // NewTxsEvent is posted when a batch of transactions enter the transaction pool.
 type NewTxsEvent struct{ Txs []*types.Transaction }
 
-// NewTustedTxsEvent is posted when a batch of transactions enter the transaction pool.
+// NewTrustedTxsEvent is posted when a batch of trusted transactions enter the transaction pool.
 type NewTrustedTxsEvent struct{ Txs []trustedtype.TrustedCryptTx }
 
 // NewMinedBlockEvent is posted when a block has been imported.

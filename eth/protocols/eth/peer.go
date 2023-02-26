@@ -17,6 +17,7 @@
 package eth
 
 import (
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math/big"
 	"math/rand"
 	"sync"
@@ -79,10 +80,11 @@ type Peer struct {
 	queuedBlocks    chan *blockPropagation // Queue of blocks to broadcast to the peer
 	queuedBlockAnns chan *types.Block      // Queue of blocks to announce to the peer
 
-	txpool      TxPool             // Transaction pool used by the broadcasters for liveness checks
-	knownTxs    *knownCache        // Set of transaction hashes known to be known by this peer
-	txBroadcast chan []common.Hash // Channel used to queue transaction propagation requests
-	txAnnounce  chan []common.Hash // Channel used to queue transaction announcement requests
+	txpool             TxPool                            // Transaction pool used by the broadcasters for liveness checks
+	knownTxs           *knownCache                       // Set of transaction hashes known to be known by this peer
+	trustedTxBroadcast chan []trustedtype.TrustedCryptTx // Channel used to queue trusted transaction propagation requests
+	txBroadcast        chan []common.Hash                // Channel used to queue transaction propagation requests
+	txAnnounce         chan []common.Hash                // Channel used to queue transaction announcement requests
 
 	reqDispatch chan *request  // Dispatch channel to send requests and track then until fulfilment
 	reqCancel   chan *cancel   // Dispatch channel to cancel pending requests and untrack them
@@ -96,24 +98,26 @@ type Peer struct {
 // version.
 func NewPeer(version uint, p *p2p.Peer, rw p2p.MsgReadWriter, txpool TxPool) *Peer {
 	peer := &Peer{
-		id:              p.ID().String(),
-		Peer:            p,
-		rw:              rw,
-		version:         version,
-		knownTxs:        newKnownCache(maxKnownTxs),
-		knownBlocks:     newKnownCache(maxKnownBlocks),
-		queuedBlocks:    make(chan *blockPropagation, maxQueuedBlocks),
-		queuedBlockAnns: make(chan *types.Block, maxQueuedBlockAnns),
-		txBroadcast:     make(chan []common.Hash),
-		txAnnounce:      make(chan []common.Hash),
-		reqDispatch:     make(chan *request),
-		reqCancel:       make(chan *cancel),
-		resDispatch:     make(chan *response),
-		txpool:          txpool,
-		term:            make(chan struct{}),
+		id:                 p.ID().String(),
+		Peer:               p,
+		rw:                 rw,
+		version:            version,
+		knownTxs:           newKnownCache(maxKnownTxs),
+		knownBlocks:        newKnownCache(maxKnownBlocks),
+		queuedBlocks:       make(chan *blockPropagation, maxQueuedBlocks),
+		queuedBlockAnns:    make(chan *types.Block, maxQueuedBlockAnns),
+		txBroadcast:        make(chan []common.Hash),
+		trustedTxBroadcast: make(chan []trustedtype.TrustedCryptTx),
+		txAnnounce:         make(chan []common.Hash),
+		reqDispatch:        make(chan *request),
+		reqCancel:          make(chan *cancel),
+		resDispatch:        make(chan *response),
+		txpool:             txpool,
+		term:               make(chan struct{}),
 	}
 	// Start up all the broadcasters
 	go peer.broadcastBlocks()
+	go peer.broadcastTrustedTransactions()
 	go peer.broadcastTransactions()
 	go peer.announceTransactions()
 	go peer.dispatcher()
@@ -207,6 +211,38 @@ func (p *Peer) AsyncSendTransactions(hashes []common.Hash) {
 		p.knownTxs.Add(hashes...)
 	case <-p.term:
 		p.Log().Debug("Dropping transaction propagation", "count", len(hashes))
+	}
+}
+
+// SendTrustedTransactions sends transactions to the peer and includes the hashes
+// in its transaction hash set for future reference.
+//
+// This method is a helper used by the async transaction sender. Don't call it
+// directly as the queueing (memory) and transmission (bandwidth) costs should
+// not be managed directly.
+//
+// The reasons this is public is to allow packages using this protocol to write
+// tests that directly send messages without having to do the asyn queueing.
+func (p *Peer) SendTrustedTransactions(txs []trustedtype.TrustedCryptTx) error {
+	// Mark all the transactions as known, but ensure we don't overflow our limits
+	for _, tx := range txs {
+		p.knownTxs.Add(tx.Hash())
+	}
+	return p2p.Send(p.rw, TrustedTransactionsMsg, NewTrustedTransactionsPacket(txs))
+}
+
+// AsyncSendTrustedTransactions queues a list of transactions (by hash) to eventually
+// propagate to a remote peer. The number of pending sends are capped (new ones
+// will force old sends to be dropped)
+func (p *Peer) AsyncSendTrustedTransactions(txs []trustedtype.TrustedCryptTx) {
+	select {
+	case p.trustedTxBroadcast <- txs:
+		// Mark all the transactions as known, but ensure we don't overflow our limits
+		for _, tx := range txs {
+			p.knownTxs.Add(tx.Hash())
+		}
+	case <-p.term:
+		p.Log().Debug("Dropping trusted transaction propagation", "count", len(txs))
 	}
 }
 

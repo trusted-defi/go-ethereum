@@ -58,7 +58,7 @@ func (pool *TxPool) SubscribeNewTxsEvent(ch chan<- NewTxsEvent) event.Subscripti
 
 // SubscribeNewTrustedTxsEvent registers a subscription of NewTxsEvent and
 // starts sending event to the given channel.
-func (pool *TxPool) SubscribeNewTrustedTxsEvent(ch chan<- NewTxsEvent) event.Subscription {
+func (pool *TxPool) SubscribeNewTrustedTxsEvent(ch chan<- NewTrustedTxsEvent) event.Subscription {
 	return pool.scope.Track(pool.txFeed.Subscribe(ch))
 }
 
@@ -140,6 +140,20 @@ func (pool *TxPool) AddLocal(tx *types.Transaction) error {
 // reorganization and internal event propagation.
 func (pool *TxPool) AddRemotes(txs []*types.Transaction) []error {
 	return pool.client.AddRemotes(txs)
+}
+
+func (pool *TxPool) AddRemotesTrusted(txs []trustedtype.TrustedCryptTx) []error {
+	errs := make([]error, len(txs))
+	if res, err := pool.client.AddRemoteTrustedTx(txs); err != nil {
+		for i := 0; i < len(txs); i++ {
+			errs[i] = err
+		}
+	} else {
+		for i, result := range res {
+			errs[i] = result.Error
+		}
+	}
+	return errs
 }
 
 // This is like AddRemotes, but waits for pool reorganization. Tests use this method.

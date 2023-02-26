@@ -17,6 +17,7 @@
 package eth
 
 import (
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -110,6 +111,72 @@ func (p *Peer) broadcastTransactions() {
 			}
 			// New batch of transactions to be broadcast, queue them (with cap)
 			queue = append(queue, hashes...)
+			if len(queue) > maxQueuedTxs {
+				// Fancy copy and resize to ensure buffer doesn't grow indefinitely
+				queue = queue[:copy(queue, queue[len(queue)-maxQueuedTxs:])]
+			}
+
+		case <-done:
+			done = nil
+
+		case <-fail:
+			failed = true
+
+		case <-p.term:
+			return
+		}
+	}
+}
+
+// broadcastTrustedTransactions is a write loop that schedules transaction broadcasts
+// to the remote peer. The goal is to have an async writer that does not lock up
+// node internals and at the same time rate limits queued data.
+func (p *Peer) broadcastTrustedTransactions() {
+	var (
+		queue  []trustedtype.TrustedCryptTx // Queue of trusted transactions
+		done   chan struct{}                // Non-nil if background broadcaster is running
+		fail   = make(chan error, 1)        // Channel used to receive network error
+		failed bool                         // Flag whether a send failed, discard everything onward
+	)
+	for {
+		// If there's no in-flight broadcast running, check if a new one is needed
+		if done == nil && len(queue) > 0 {
+			// Pile transaction until we reach our allowed network limit
+			var (
+				count uint64
+				txs   []trustedtype.TrustedCryptTx
+				size  int64
+			)
+			for i := 0; i < len(queue) && size < maxTxPacketSize; i++ {
+				tx := queue[i]
+				txs = append(txs, tx)
+				size += tx.Size()
+				count++
+			}
+			queue = queue[:copy(queue, queue[count:])]
+
+			// If there's anything available to transfer, fire up an async writer
+			if len(txs) > 0 {
+				done = make(chan struct{})
+				go func() {
+					if err := p.SendTrustedTransactions(txs); err != nil {
+						fail <- err
+						return
+					}
+					close(done)
+					p.Log().Trace("Sent trusted transactions", "count", len(txs))
+				}()
+			}
+		}
+		// Transfer goroutine may or may not have been started, listen for events
+		select {
+		case txs := <-p.trustedTxBroadcast:
+			// If the connection failed, discard all transaction events
+			if failed {
+				continue
+			}
+			// New batch of transactions to be broadcast, queue them (with cap)
+			queue = append(queue, txs...)
 			if len(queue) > maxQueuedTxs {
 				// Fancy copy and resize to ensure buffer doesn't grow indefinitely
 				queue = queue[:copy(queue, queue[len(queue)-maxQueuedTxs:])]

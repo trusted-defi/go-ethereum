@@ -18,6 +18,7 @@ package eth
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math"
 	"math/big"
 	"sync"
@@ -65,6 +66,8 @@ type txPool interface {
 	// AddRemotes should add the given transactions to the pool.
 	AddRemotes([]*types.Transaction) []error
 
+	AddRemotesTrusted(txs []trustedtype.TrustedCryptTx) []error
+
 	// Pending should return pending transactions.
 	// The slice should be modifiable by the caller.
 	Pending(enforceTips bool) map[common.Address]types.Transactions
@@ -72,6 +75,10 @@ type txPool interface {
 	// SubscribeNewTxsEvent should return an event subscription of
 	// NewTxsEvent and send events to the given channel.
 	SubscribeNewTxsEvent(chan<- core.NewTxsEvent) event.Subscription
+
+	// SubscribeNewTrusedTxsEvent should return an event subscription of
+	// NewTxsEvent and send events to the given channel.
+	SubscribeNewTrustedTxsEvent(chan<- core.NewTrustedTxsEvent) event.Subscription
 }
 
 // handlerConfig is the collection of initialization parameters to create a full
@@ -113,6 +120,9 @@ type handler struct {
 	eventMux      *event.TypeMux
 	txsCh         chan core.NewTxsEvent
 	txsSub        event.Subscription
+	trustedTxsCh  chan core.NewTrustedTxsEvent
+	trustedTxsSub event.Subscription
+
 	minedBlockSub *event.TypeMuxSubscription
 
 	requiredBlocks map[uint64]common.Hash
@@ -548,6 +558,12 @@ func (h *handler) Start(maxPeers int) {
 	h.txsSub = h.txpool.SubscribeNewTxsEvent(h.txsCh)
 	go h.txBroadcastLoop()
 
+	// broadcast trusted transactions
+	h.wg.Add(1)
+	h.trustedTxsCh = make(chan core.NewTrustedTxsEvent, txChanSize)
+	h.trustedTxsSub = h.txpool.SubscribeNewTrustedTxsEvent(h.trustedTxsCh)
+	go h.trustedTxBroadcastLoop()
+
 	// broadcast mined blocks
 	h.wg.Add(1)
 	h.minedBlockSub = h.eventMux.Subscribe(core.NewMinedBlockEvent{})
@@ -559,7 +575,12 @@ func (h *handler) Start(maxPeers int) {
 }
 
 func (h *handler) Stop() {
-	h.txsSub.Unsubscribe()        // quits txBroadcastLoop
+	h.txsSub.Unsubscribe() // quits txBroadcastLoop
+
+	if h.trustedTxsSub != nil {
+		h.trustedTxsSub.Unsubscribe() // quits txBroadcastLoop
+	}
+
 	h.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop
 
 	// Quit chainSync and txsync64.
@@ -664,6 +685,49 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 		"tx packs", directPeers, "broadcast txs", directCount)
 }
 
+// BroadcastTrustedTransactions will propagate a batch of trusted transactions
+// - To a square root of all peers
+// - And, separately, as announcements to all peers which are not known to
+// already have the given transaction.
+func (h *handler) BroadcastTrustedTransactions(txs []trustedtype.TrustedCryptTx) {
+	var (
+		annoCount   int // Count of announcements made
+		annoPeers   int
+		directCount int // Count of the txs sent directly to peers
+		directPeers int // Count of the peers that were sent transactions directly
+
+		txset = make(map[*ethPeer][]trustedtype.TrustedCryptTx) // Set peer->hash to transfer directly
+		annos = make(map[*ethPeer][]trustedtype.TrustedCryptTx) // Set peer->hash to announce
+
+	)
+	// Broadcast transactions to a batch of peers not knowing about it
+	for _, tx := range txs {
+		peers := h.peers.peersWithoutTransaction(tx.Hash())
+		// Send the tx unconditionally to a subset of our peers
+		numDirect := int(math.Sqrt(float64(len(peers))))
+		for _, peer := range peers[:numDirect] {
+			txset[peer] = append(txset[peer], tx.Copy())
+		}
+		// For the remaining peers, send announcement only
+		for _, peer := range peers[numDirect:] {
+			annos[peer] = append(annos[peer], tx.Copy())
+		}
+	}
+	for peer, hashes := range txset {
+		directPeers++
+		directCount += len(hashes)
+		peer.AsyncSendTrustedTransactions(hashes)
+	}
+	//for peer, hashes := range annos {
+	//	annoPeers++
+	//	annoCount += len(hashes)
+	//	peer.AsyncSendPooledTransactionHashes(hashes)
+	//}
+	log.Debug("Trusted Transaction broadcast", "txs", len(txs),
+		"announce packs", annoPeers, "announced hashes", annoCount,
+		"tx packs", directPeers, "broadcast txs", directCount)
+}
+
 // minedBroadcastLoop sends mined blocks to connected peers.
 func (h *handler) minedBroadcastLoop() {
 	defer h.wg.Done()
@@ -684,6 +748,19 @@ func (h *handler) txBroadcastLoop() {
 		case event := <-h.txsCh:
 			h.BroadcastTransactions(event.Txs)
 		case <-h.txsSub.Err():
+			return
+		}
+	}
+}
+
+// trustedTxBroadcastLoop announces new transactions to connected peers.
+func (h *handler) trustedTxBroadcastLoop() {
+	defer h.wg.Done()
+	for {
+		select {
+		case event := <-h.trustedTxsCh:
+			h.BroadcastTrustedTransactions(event.Txs)
+		case <-h.trustedTxsSub.Err():
 			return
 		}
 	}

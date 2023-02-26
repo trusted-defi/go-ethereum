@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/trusted/engine"
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math/big"
 	"strings"
 	"time"
@@ -1890,7 +1891,12 @@ func (s *TransactionAPI) CryptTrustedTransaction(ctx context.Context, input hexu
 
 // SendTrustedTransaction send trusted transaction to trusted engine.
 func (s *TransactionAPI) SendTrustedTransaction(ctx context.Context, input hexutil.Bytes) (*engine.SendTrustedTransacionResult, error) {
-	return s.trustedEngine.AddLocalTrustedTx(input)
+	if s.trustedEngine != nil {
+		tx := trustedtype.TrustedCryptTx(input)
+		return s.trustedEngine.AddLocalTrustedTx(tx)
+	} else {
+		return nil, errors.New("trusted engine is not exist")
+	}
 }
 
 // DebugAPI is the collection of Ethereum APIs exposed over the debugging

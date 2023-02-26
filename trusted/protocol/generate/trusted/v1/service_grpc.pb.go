@@ -23,6 +23,12 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TrustedServiceClient interface {
+	//    rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
+	//    rpc AddTx(AddTxRequest) returns (AddTxResponse) {}
+	//    rpc Status(StatusRequest) returns (StatusResponse) {}
+	//    rpc Reset(ResetRequest) returns (ResetResponse) {}
+	//    rpc Pending(PendingRequest) returns (PendingResponse) {}
+	ServiceReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ServiceReadyResponse, error)
 	PoolSetPrice(ctx context.Context, in *SetPriceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	PoolGasPrice(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GasPriceResponse, error)
 	PendingNonce(ctx context.Context, in *PendingNonceRequest, opts ...grpc.CallOption) (*PendingNonceResponse, error)
@@ -38,8 +44,8 @@ type TrustedServiceClient interface {
 	TxHas(ctx context.Context, in *TxHasRequest, opts ...grpc.CallOption) (*TxHasResponse, error)
 	SubscribeNewTransaction(ctx context.Context, in *SubscribeNewTxRequest, opts ...grpc.CallOption) (TrustedService_SubscribeNewTransactionClient, error)
 	Crypt(ctx context.Context, in *CryptRequest, opts ...grpc.CallOption) (*CryptResponse, error)
-	AddLocalTrustedTx(ctx context.Context, in *AddTrustedTxRequest, opts ...grpc.CallOption) (*AddTrustedTxResponse, error)
-	AddRemoteTrustedTx(ctx context.Context, in *AddTrustedTxRequest, opts ...grpc.CallOption) (*AddTrustedTxResponse, error)
+	AddLocalTrustedTxs(ctx context.Context, in *AddTrustedTxsRequest, opts ...grpc.CallOption) (*AddTrustedTxsResponse, error)
+	AddRemoteTrustedTxs(ctx context.Context, in *AddTrustedTxsRequest, opts ...grpc.CallOption) (*AddTrustedTxsResponse, error)
 	FillBlock(ctx context.Context, in *FillBlockRequest, opts ...grpc.CallOption) (*FillBlockResponse, error)
 }
 
@@ -49,6 +55,15 @@ type trustedServiceClient struct {
 
 func NewTrustedServiceClient(cc grpc.ClientConnInterface) TrustedServiceClient {
 	return &trustedServiceClient{cc}
+}
+
+func (c *trustedServiceClient) ServiceReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ServiceReadyResponse, error) {
+	out := new(ServiceReadyResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/ServiceReady", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *trustedServiceClient) PoolSetPrice(ctx context.Context, in *SetPriceRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -209,18 +224,18 @@ func (c *trustedServiceClient) Crypt(ctx context.Context, in *CryptRequest, opts
 	return out, nil
 }
 
-func (c *trustedServiceClient) AddLocalTrustedTx(ctx context.Context, in *AddTrustedTxRequest, opts ...grpc.CallOption) (*AddTrustedTxResponse, error) {
-	out := new(AddTrustedTxResponse)
-	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/AddLocalTrustedTx", in, out, opts...)
+func (c *trustedServiceClient) AddLocalTrustedTxs(ctx context.Context, in *AddTrustedTxsRequest, opts ...grpc.CallOption) (*AddTrustedTxsResponse, error) {
+	out := new(AddTrustedTxsResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/AddLocalTrustedTxs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *trustedServiceClient) AddRemoteTrustedTx(ctx context.Context, in *AddTrustedTxRequest, opts ...grpc.CallOption) (*AddTrustedTxResponse, error) {
-	out := new(AddTrustedTxResponse)
-	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/AddRemoteTrustedTx", in, out, opts...)
+func (c *trustedServiceClient) AddRemoteTrustedTxs(ctx context.Context, in *AddTrustedTxsRequest, opts ...grpc.CallOption) (*AddTrustedTxsResponse, error) {
+	out := new(AddTrustedTxsResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/AddRemoteTrustedTxs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -240,6 +255,12 @@ func (c *trustedServiceClient) FillBlock(ctx context.Context, in *FillBlockReque
 // All implementations must embed UnimplementedTrustedServiceServer
 // for forward compatibility
 type TrustedServiceServer interface {
+	//    rpc HealthCheck(google.protobuf.Empty) returns (HealthCheckResponse) {}
+	//    rpc AddTx(AddTxRequest) returns (AddTxResponse) {}
+	//    rpc Status(StatusRequest) returns (StatusResponse) {}
+	//    rpc Reset(ResetRequest) returns (ResetResponse) {}
+	//    rpc Pending(PendingRequest) returns (PendingResponse) {}
+	ServiceReady(context.Context, *emptypb.Empty) (*ServiceReadyResponse, error)
 	PoolSetPrice(context.Context, *SetPriceRequest) (*emptypb.Empty, error)
 	PoolGasPrice(context.Context, *emptypb.Empty) (*GasPriceResponse, error)
 	PendingNonce(context.Context, *PendingNonceRequest) (*PendingNonceResponse, error)
@@ -255,8 +276,8 @@ type TrustedServiceServer interface {
 	TxHas(context.Context, *TxHasRequest) (*TxHasResponse, error)
 	SubscribeNewTransaction(*SubscribeNewTxRequest, TrustedService_SubscribeNewTransactionServer) error
 	Crypt(context.Context, *CryptRequest) (*CryptResponse, error)
-	AddLocalTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error)
-	AddRemoteTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error)
+	AddLocalTrustedTxs(context.Context, *AddTrustedTxsRequest) (*AddTrustedTxsResponse, error)
+	AddRemoteTrustedTxs(context.Context, *AddTrustedTxsRequest) (*AddTrustedTxsResponse, error)
 	FillBlock(context.Context, *FillBlockRequest) (*FillBlockResponse, error)
 	mustEmbedUnimplementedTrustedServiceServer()
 }
@@ -265,6 +286,9 @@ type TrustedServiceServer interface {
 type UnimplementedTrustedServiceServer struct {
 }
 
+func (UnimplementedTrustedServiceServer) ServiceReady(context.Context, *emptypb.Empty) (*ServiceReadyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServiceReady not implemented")
+}
 func (UnimplementedTrustedServiceServer) PoolSetPrice(context.Context, *SetPriceRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PoolSetPrice not implemented")
 }
@@ -310,11 +334,11 @@ func (UnimplementedTrustedServiceServer) SubscribeNewTransaction(*SubscribeNewTx
 func (UnimplementedTrustedServiceServer) Crypt(context.Context, *CryptRequest) (*CryptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Crypt not implemented")
 }
-func (UnimplementedTrustedServiceServer) AddLocalTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddLocalTrustedTx not implemented")
+func (UnimplementedTrustedServiceServer) AddLocalTrustedTxs(context.Context, *AddTrustedTxsRequest) (*AddTrustedTxsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddLocalTrustedTxs not implemented")
 }
-func (UnimplementedTrustedServiceServer) AddRemoteTrustedTx(context.Context, *AddTrustedTxRequest) (*AddTrustedTxResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddRemoteTrustedTx not implemented")
+func (UnimplementedTrustedServiceServer) AddRemoteTrustedTxs(context.Context, *AddTrustedTxsRequest) (*AddTrustedTxsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddRemoteTrustedTxs not implemented")
 }
 func (UnimplementedTrustedServiceServer) FillBlock(context.Context, *FillBlockRequest) (*FillBlockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FillBlock not implemented")
@@ -330,6 +354,24 @@ type UnsafeTrustedServiceServer interface {
 
 func RegisterTrustedServiceServer(s grpc.ServiceRegistrar, srv TrustedServiceServer) {
 	s.RegisterService(&TrustedService_ServiceDesc, srv)
+}
+
+func _TrustedService_ServiceReady_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).ServiceReady(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/ServiceReady",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).ServiceReady(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _TrustedService_PoolSetPrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -605,38 +647,38 @@ func _TrustedService_Crypt_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TrustedService_AddLocalTrustedTx_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddTrustedTxRequest)
+func _TrustedService_AddLocalTrustedTxs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddTrustedTxsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TrustedServiceServer).AddLocalTrustedTx(ctx, in)
+		return srv.(TrustedServiceServer).AddLocalTrustedTxs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/trusted.v1.TrustedService/AddLocalTrustedTx",
+		FullMethod: "/trusted.v1.TrustedService/AddLocalTrustedTxs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrustedServiceServer).AddLocalTrustedTx(ctx, req.(*AddTrustedTxRequest))
+		return srv.(TrustedServiceServer).AddLocalTrustedTxs(ctx, req.(*AddTrustedTxsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TrustedService_AddRemoteTrustedTx_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddTrustedTxRequest)
+func _TrustedService_AddRemoteTrustedTxs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddTrustedTxsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TrustedServiceServer).AddRemoteTrustedTx(ctx, in)
+		return srv.(TrustedServiceServer).AddRemoteTrustedTxs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/trusted.v1.TrustedService/AddRemoteTrustedTx",
+		FullMethod: "/trusted.v1.TrustedService/AddRemoteTrustedTxs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TrustedServiceServer).AddRemoteTrustedTx(ctx, req.(*AddTrustedTxRequest))
+		return srv.(TrustedServiceServer).AddRemoteTrustedTxs(ctx, req.(*AddTrustedTxsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -666,6 +708,10 @@ var TrustedService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "trusted.v1.TrustedService",
 	HandlerType: (*TrustedServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ServiceReady",
+			Handler:    _TrustedService_ServiceReady_Handler,
+		},
 		{
 			MethodName: "PoolSetPrice",
 			Handler:    _TrustedService_PoolSetPrice_Handler,
@@ -723,12 +769,12 @@ var TrustedService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TrustedService_Crypt_Handler,
 		},
 		{
-			MethodName: "AddLocalTrustedTx",
-			Handler:    _TrustedService_AddLocalTrustedTx_Handler,
+			MethodName: "AddLocalTrustedTxs",
+			Handler:    _TrustedService_AddLocalTrustedTxs_Handler,
 		},
 		{
-			MethodName: "AddRemoteTrustedTx",
-			Handler:    _TrustedService_AddRemoteTrustedTx_Handler,
+			MethodName: "AddRemoteTrustedTxs",
+			Handler:    _TrustedService_AddRemoteTrustedTxs_Handler,
 		},
 		{
 			MethodName: "FillBlock",
@@ -749,6 +795,7 @@ var TrustedService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChainServiceClient interface {
+	ServiceReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ServiceReadyResponse, error)
 	GetBlock(ctx context.Context, in *BlockRequest, opts ...grpc.CallOption) (*BlockResponse, error)
 	GetBalance(ctx context.Context, in *BalanceRequest, opts ...grpc.CallOption) (*BalanceResponse, error)
 	GetNonce(ctx context.Context, in *NonceRequest, opts ...grpc.CallOption) (*NonceResponse, error)
@@ -763,6 +810,15 @@ type chainServiceClient struct {
 
 func NewChainServiceClient(cc grpc.ClientConnInterface) ChainServiceClient {
 	return &chainServiceClient{cc}
+}
+
+func (c *chainServiceClient) ServiceReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ServiceReadyResponse, error) {
+	out := new(ServiceReadyResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.ChainService/ServiceReady", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *chainServiceClient) GetBlock(ctx context.Context, in *BlockRequest, opts ...grpc.CallOption) (*BlockResponse, error) {
@@ -846,6 +902,7 @@ func (x *chainServiceChainHeadEventClient) Recv() (*ChainHeadEventResponse, erro
 // All implementations must embed UnimplementedChainServiceServer
 // for forward compatibility
 type ChainServiceServer interface {
+	ServiceReady(context.Context, *emptypb.Empty) (*ServiceReadyResponse, error)
 	GetBlock(context.Context, *BlockRequest) (*BlockResponse, error)
 	GetBalance(context.Context, *BalanceRequest) (*BalanceResponse, error)
 	GetNonce(context.Context, *NonceRequest) (*NonceResponse, error)
@@ -859,6 +916,9 @@ type ChainServiceServer interface {
 type UnimplementedChainServiceServer struct {
 }
 
+func (UnimplementedChainServiceServer) ServiceReady(context.Context, *emptypb.Empty) (*ServiceReadyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServiceReady not implemented")
+}
 func (UnimplementedChainServiceServer) GetBlock(context.Context, *BlockRequest) (*BlockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBlock not implemented")
 }
@@ -888,6 +948,24 @@ type UnsafeChainServiceServer interface {
 
 func RegisterChainServiceServer(s grpc.ServiceRegistrar, srv ChainServiceServer) {
 	s.RegisterService(&ChainService_ServiceDesc, srv)
+}
+
+func _ChainService_ServiceReady_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChainServiceServer).ServiceReady(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.ChainService/ServiceReady",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChainServiceServer).ServiceReady(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ChainService_GetBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1008,6 +1086,10 @@ var ChainService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "trusted.v1.ChainService",
 	HandlerType: (*ChainServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ServiceReady",
+			Handler:    _ChainService_ServiceReady_Handler,
+		},
 		{
 			MethodName: "GetBlock",
 			Handler:    _ChainService_GetBlock_Handler,

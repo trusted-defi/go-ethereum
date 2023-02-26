@@ -5,6 +5,10 @@ package trusted.v1;
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
+message ServiceReadyResponse {
+    bool ready = 1;
+}
+
 message SetPriceRequest {
     bytes price = 1;
 }
@@ -131,13 +135,18 @@ message CryptResponse {
     bytes crypted = 1;
 }
 
-message AddTrustedTxRequest {
-    bytes ctypted_tx = 1;
+message AddTrustedTxsRequest {
+    repeated bytes ctypted_txs = 1;
 }
 
-message AddTrustedTxResponse {
+message AddTrustedTxResult {
     bytes hash = 1;
     bytes asset = 2;
+    string error = 3;
+}
+
+message AddTrustedTxsResponse {
+    repeated AddTrustedTxResult results = 1;
 }
 
 message FillBlockRequest {

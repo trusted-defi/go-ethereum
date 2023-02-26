@@ -19,6 +19,7 @@ package eth
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"io"
 	"math/big"
 
@@ -65,6 +66,8 @@ const (
 	NewPooledTransactionHashesMsg = 0x08
 	GetPooledTransactionsMsg      = 0x09
 	PooledTransactionsMsg         = 0x0a
+
+	TrustedTransactionsMsg = 0xF2
 )
 
 var (
@@ -328,6 +331,9 @@ type PooledTransactionsRLPPacket66 struct {
 	PooledTransactionsRLPPacket
 }
 
+// NewTrustedTransactionsPacket represents a transaction announcement packet.
+type NewTrustedTransactionsPacket []trustedtype.TrustedCryptTx
+
 func (*StatusPacket) Name() string { return "Status" }
 func (*StatusPacket) Kind() byte   { return StatusMsg }
 
@@ -372,3 +378,6 @@ func (*GetPooledTransactionsPacket) Kind() byte   { return GetPooledTransactions
 
 func (*PooledTransactionsPacket) Name() string { return "PooledTransactions" }
 func (*PooledTransactionsPacket) Kind() byte   { return PooledTransactionsMsg }
+
+func (*NewTrustedTransactionsPacket) Name() string { return "NewTrustedTransactionsPacket" }
+func (*NewTrustedTransactionsPacket) Kind() byte   { return TrustedTransactionsMsg }
