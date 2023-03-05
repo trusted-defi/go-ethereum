@@ -38,6 +38,15 @@ func NewTrustedEngineClient() *TrustedEngineClient {
 	return c
 }
 
+func (t *TrustedEngineClient) Ready() bool {
+	_, err := t.client.PoolGasPrice(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		log.Error("gasprice failed", "err", err)
+		return false
+	}
+	return true
+}
+
 func (t *TrustedEngineClient) SetPrice(price *big.Int) {
 	req := new(trustedv1.SetPriceRequest)
 	req.Price = price.Bytes()
@@ -45,7 +54,7 @@ func (t *TrustedEngineClient) SetPrice(price *big.Int) {
 }
 
 func (t *TrustedEngineClient) GasPrice() *big.Int {
-	res, err := t.client.PoolGasPrice(context.Background(), nil)
+	res, err := t.client.PoolGasPrice(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		gas, _ := new(big.Int).SetString("1000000000", 10)
 		return gas
@@ -112,7 +121,7 @@ func (t *TrustedEngineClient) Pending() map[common.Address]types.Transactions {
 
 func (t *TrustedEngineClient) Locals() []common.Address {
 	l := make([]common.Address, 0)
-	res, err := t.client.PoolLocals(context.Background(), nil)
+	res, err := t.client.PoolLocals(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		return l
 	}

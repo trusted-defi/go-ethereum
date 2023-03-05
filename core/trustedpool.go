@@ -10,38 +10,63 @@ import (
 	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math/big"
 	"sync"
+	"time"
 )
 
 type TxPool struct {
-	client *engine.TrustedEngineClient
-	txFeed event.Feed
-	scope  event.SubscriptionScope
-	wg     sync.WaitGroup
-	mu     sync.RWMutex
+	client        *engine.TrustedEngineClient
+	txFeed        event.Feed
+	trustedTxFeed event.Feed
+	scope         event.SubscriptionScope
+	quit          bool
+	wg            sync.WaitGroup
+	mu            sync.RWMutex
 }
 
 func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain blockChain) *TxPool {
 	pool := &TxPool{
 		client: engine.NewTrustedEngineClient(),
+		quit:   false,
 	}
+	go pool.loop()
 	return pool
 }
 
 func (pool *TxPool) loop() {
 	var newTxCh = make(chan []trustedtype.TrustedCryptTx, 10000)
-	go func() {
-		pool.client.SubscribeNewTx(newTxCh)
-	}()
-	for {
-		select {
-		case ntxs := <-newTxCh:
-			pool.txFeed.Send(NewTrustedTxsEvent{ntxs})
+	var subscribeTx = func(disconnect chan error, newtx chan []trustedtype.TrustedCryptTx) {
+		err := pool.client.SubscribeNewTx(newtx)
+		if err != nil {
+			log.Error("pool client subscribe failed", "err", err)
+		}
+		disconnect <- err
+	}
+	for !pool.quit {
+		ready := pool.client.Ready()
+		if !ready {
+			log.Warn("pool client not ready, wait a moment")
+			time.Sleep(time.Second)
+			continue
+		}
+		var disconnect = make(chan error)
+		go subscribeTx(disconnect, newTxCh)
+		bcontinue := true
+		for bcontinue {
+			select {
+			case ntxs := <-newTxCh:
+				log.Info("trusted pool post NewTrustedTxsEvent", "txs", len(ntxs))
+				pool.trustedTxFeed.Send(NewTrustedTxsEvent{ntxs})
+			case err := <-disconnect:
+				log.Error("trusted client disconnect", "err", err)
+				bcontinue = false
+			}
 		}
 	}
 }
 
 // Stop terminates the transaction pool.
 func (pool *TxPool) Stop() {
+	pool.quit = true
 	// Unsubscribe all subscriptions registered from txpool
 	pool.scope.Close()
 
@@ -59,7 +84,7 @@ func (pool *TxPool) SubscribeNewTxsEvent(ch chan<- NewTxsEvent) event.Subscripti
 // SubscribeNewTrustedTxsEvent registers a subscription of NewTxsEvent and
 // starts sending event to the given channel.
 func (pool *TxPool) SubscribeNewTrustedTxsEvent(ch chan<- NewTrustedTxsEvent) event.Subscription {
-	return pool.scope.Track(pool.txFeed.Subscribe(ch))
+	return pool.scope.Track(pool.trustedTxFeed.Subscribe(ch))
 }
 
 // GasPrice returns the current gas price enforced by the transaction pool.
