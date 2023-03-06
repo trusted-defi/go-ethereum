@@ -18,7 +18,10 @@ package light
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/trusted/engine"
 	"math/big"
 	"sync"
 	"time"
@@ -549,4 +552,12 @@ func (pool *TxPool) RemoveTx(hash common.Hash) {
 	delete(pool.pending, hash)
 	pool.chainDb.Delete(hash[:])
 	pool.relay.Discard([]common.Hash{hash})
+}
+
+func (pool *TxPool) CryptTrustedTransaction(input hexutil.Bytes) (hexutil.Bytes, error) {
+	return nil, errors.New("not support")
+}
+
+func (pool *TxPool) AddTrustedTransaction(input hexutil.Bytes) (*engine.SendTrustedTransacionResult, error) {
+	return nil, errors.New("not support")
 }

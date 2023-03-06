@@ -530,11 +530,13 @@ func handlePooledTransactions66(backend Backend, msg Decoder, peer *Peer) error 
 func handleTrustedTransactionsMsg(backend Backend, msg Decoder, peer *Peer) error {
 	// New transaction announcement arrived, make sure we have
 	// a valid and fresh chain to handle them
+	log.Debug("receive trusted transaction msg")
 	if !backend.AcceptTxs() {
 		return nil
 	}
 	ann := new(NewTrustedTransactionsPacket)
 	if err := msg.Decode(ann); err != nil {
+		log.Error("receive trusted transaction msg", "decode failed", err)
 		return fmt.Errorf("%w: message %v: %v", errDecode, msg, err)
 	}
 	// Schedule all the unknown hashes for retrieval

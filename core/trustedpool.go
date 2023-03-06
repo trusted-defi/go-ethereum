@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
@@ -23,9 +24,9 @@ type TxPool struct {
 	mu            sync.RWMutex
 }
 
-func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain blockChain) *TxPool {
+func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain blockChain, trustedConfig trustedtype.TrustedConfig) *TxPool {
 	pool := &TxPool{
-		client: engine.NewTrustedEngineClient(),
+		client: engine.NewTrustedEngineClient(trustedConfig),
 		quit:   false,
 	}
 	go pool.loop()
@@ -170,11 +171,13 @@ func (pool *TxPool) AddRemotes(txs []*types.Transaction) []error {
 func (pool *TxPool) AddRemotesTrusted(txs []trustedtype.TrustedCryptTx) []error {
 	errs := make([]error, len(txs))
 	if res, err := pool.client.AddRemoteTrustedTx(txs); err != nil {
+		log.Error("add remote trusted tx failed", "err", err)
 		for i := 0; i < len(txs); i++ {
 			errs[i] = err
 		}
 	} else {
 		for i, result := range res {
+			log.Error("add remote trusted tx result failed", "err", result.Error)
 			errs[i] = result.Error
 		}
 	}
@@ -217,4 +220,13 @@ func (pool *TxPool) Get(hash common.Hash) *types.Transaction {
 // given hash.
 func (pool *TxPool) Has(hash common.Hash) bool {
 	return pool.client.Has(hash)
+}
+
+func (pool *TxPool) CryptTrustedTransaction(input hexutil.Bytes) (hexutil.Bytes, error) {
+	return pool.client.Crypt(input)
+}
+
+func (pool *TxPool) AddTrustedTransaction(input hexutil.Bytes) (*engine.SendTrustedTransacionResult, error) {
+	tx := trustedtype.TrustedCryptTx(input)
+	return pool.client.AddLocalTrustedTx(tx)
 }

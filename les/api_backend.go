@@ -19,6 +19,8 @@ package les
 import (
 	"context"
 	"errors"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/trusted/engine"
 	"math/big"
 	"time"
 
@@ -49,6 +51,14 @@ type LesApiBackend struct {
 
 func (b *LesApiBackend) ChainConfig() *params.ChainConfig {
 	return b.eth.chainConfig
+}
+
+func (b *LesApiBackend) CryptTrustedTransaction(input hexutil.Bytes) (hexutil.Bytes, error) {
+	return b.eth.txPool.CryptTrustedTransaction(input)
+}
+
+func (b *LesApiBackend) CommitTrustedTx(input hexutil.Bytes) (*engine.SendTrustedTransacionResult, error) {
+	return b.eth.txPool.AddTrustedTransaction(input)
 }
 
 func (b *LesApiBackend) CurrentBlock() *types.Block {

@@ -138,6 +138,8 @@ func (p *Peer) broadcastTrustedTransactions() {
 		fail   = make(chan error, 1)        // Channel used to receive network error
 		failed bool                         // Flag whether a send failed, discard everything onward
 	)
+	p.Log().Trace("enter broadcast trusted transacions")
+	defer p.Log().Trace("exit broadcast trusted transacions")
 	for {
 		// If there's no in-flight broadcast running, check if a new one is needed
 		if done == nil && len(queue) > 0 {
@@ -159,7 +161,9 @@ func (p *Peer) broadcastTrustedTransactions() {
 			if len(txs) > 0 {
 				done = make(chan struct{})
 				go func() {
+					p.Log().Trace("goto send trusted transactions")
 					if err := p.SendTrustedTransactions(txs); err != nil {
+						p.Log().Trace("send trusted transactions", "failed", err)
 						fail <- err
 						return
 					}

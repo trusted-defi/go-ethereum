@@ -759,6 +759,7 @@ func (h *handler) trustedTxBroadcastLoop() {
 	for {
 		select {
 		case event := <-h.trustedTxsCh:
+			log.Debug("handler got trusted tx and goto broadcast", "count", len(event.Txs))
 			h.BroadcastTrustedTransactions(event.Txs)
 		case <-h.trustedTxsSub.Err():
 			return

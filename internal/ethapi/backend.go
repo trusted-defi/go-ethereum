@@ -19,6 +19,8 @@ package ethapi
 
 import (
 	"context"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/trusted/engine"
 	"math/big"
 	"time"
 
@@ -86,6 +88,9 @@ type Backend interface {
 
 	ChainConfig() *params.ChainConfig
 	Engine() consensus.Engine
+
+	CryptTrustedTransaction(input hexutil.Bytes) (hexutil.Bytes, error)
+	CommitTrustedTx(input hexutil.Bytes) (*engine.SendTrustedTransacionResult, error)
 
 	// eth/filters needs to be initialized from this backend type, so methods needed by
 	// it must also be included here.

@@ -5,6 +5,11 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+type TrustedConfig struct {
+	ChainServer   string
+	TrustedClient string
+}
+
 // todo implement rlp
 type TrustedCryptTx []byte
 

@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/eth/ethconfig"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	trusted "github.com/ethereum/go-ethereum/trusted/protocol/generate/trusted/v1"
@@ -157,8 +158,8 @@ func RegisterService(server *grpc.Server, chain *core.BlockChain) {
 	trusted.RegisterChainServiceServer(server, s)
 }
 
-func StartChainService(chain *core.BlockChain) {
-	lis, err := net.Listen("tcp", ":3801")
+func StartChainService(chain *core.BlockChain, config *ethconfig.Config) {
+	lis, err := net.Listen("tcp", config.ChainServer)
 	if err != nil {
 		fmt.Printf("failed to listen: %v", err)
 		return

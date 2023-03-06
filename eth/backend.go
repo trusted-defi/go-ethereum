@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/trusted/chainservice"
+	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math/big"
 	"runtime"
 	"strings"
@@ -218,7 +219,10 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 	if config.TxPool.Journal != "" {
 		config.TxPool.Journal = stack.ResolvePath(config.TxPool.Journal)
 	}
-	eth.txPool = core.NewTxPool(config.TxPool, chainConfig, eth.blockchain)
+	eth.txPool = core.NewTxPool(config.TxPool, chainConfig, eth.blockchain, trustedtype.TrustedConfig{
+		eth.config.ChainServer,
+		eth.config.TrustedClient,
+	})
 
 	// Permit the downloader to use the trie cache allowance during fast sync
 	cacheLimit := cacheConfig.TrieCleanLimit + cacheConfig.TrieDirtyLimit + cacheConfig.SnapshotLimit
@@ -538,7 +542,7 @@ func (s *Ethereum) Start() error {
 	}
 	// Start the networking layer and the light server if requested
 	s.handler.Start(maxPeers)
-	go chainservice.StartChainService(s.blockchain)
+	go chainservice.StartChainService(s.blockchain, s.config)
 	return nil
 }
 

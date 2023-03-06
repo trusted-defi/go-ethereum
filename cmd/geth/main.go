@@ -154,6 +154,8 @@ var (
 		utils.GpoIgnoreGasPriceFlag,
 		utils.MinerNotifyFullFlag,
 		utils.IgnoreLegacyReceiptsFlag,
+		utils.ChainServerFlag,
+		utils.TrustedClientFlag,
 		configFileFlag,
 	}, utils.NetworkFlags, utils.DatabasePathFlags)
 

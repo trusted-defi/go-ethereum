@@ -977,6 +977,17 @@ var (
 		Value:    metrics.DefaultConfig.InfluxDBOrganization,
 		Category: flags.MetricsCategory,
 	}
+
+	TrustedClientFlag = &cli.StringFlag{
+		Name:  "trusted-client",
+		Value: ":3802",
+		Usage: "trusted engine address",
+	}
+	ChainServerFlag = &cli.StringFlag{
+		Name:  "chain-server",
+		Value: ":3801",
+		Usage: "chain server address",
+	}
 )
 
 var (
@@ -1540,6 +1551,11 @@ func SetDataDir(ctx *cli.Context, cfg *node.Config) {
 	}
 }
 
+func SetTrusted(ctx *cli.Context, cfg *ethconfig.Config) {
+	cfg.TrustedClient = ctx.String(TrustedClientFlag.Name)
+	cfg.ChainServer = ctx.String(ChainServerFlag.Name)
+}
+
 func setGPO(ctx *cli.Context, cfg *gasprice.Config, light bool) {
 	// If we are running the light client, apply another group
 	// settings for gas oracle.
@@ -1748,6 +1764,7 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 	setMiner(ctx, &cfg.Miner)
 	setRequiredBlocks(ctx, cfg)
 	setLes(ctx, cfg)
+	SetTrusted(ctx, cfg)
 
 	// Cap the cache allowance and tune the garbage collector
 	mem, err := gopsutil.VirtualMemory()

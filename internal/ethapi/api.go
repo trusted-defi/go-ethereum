@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/trusted/engine"
-	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math/big"
 	"strings"
 	"time"
@@ -1453,10 +1452,9 @@ func AccessList(ctx context.Context, b Backend, blockNrOrHash rpc.BlockNumberOrH
 
 // TransactionAPI exposes methods for reading and creating transaction data.
 type TransactionAPI struct {
-	b             Backend
-	nonceLock     *AddrLocker
-	signer        types.Signer
-	trustedEngine *engine.TrustedEngineClient
+	b         Backend
+	nonceLock *AddrLocker
+	signer    types.Signer
 }
 
 // NewTransactionAPI creates a new RPC service with methods for interacting with transactions.
@@ -1464,7 +1462,7 @@ func NewTransactionAPI(b Backend, nonceLock *AddrLocker) *TransactionAPI {
 	// The signer used by the API should always be the 'latest' known one because we expect
 	// signers to be backwards-compatible with old transactions.
 	signer := types.LatestSigner(b.ChainConfig())
-	return &TransactionAPI{b, nonceLock, signer, engine.NewTrustedEngineClient()}
+	return &TransactionAPI{b, nonceLock, signer}
 }
 
 // GetBlockTransactionCountByNumber returns the number of transactions in the block with the given block number.
@@ -1882,21 +1880,12 @@ func (s *TransactionAPI) Resend(ctx context.Context, sendArgs TransactionArgs, g
 
 // CryptTrustedTransaction Crypt raw transaction with trusted grpc and return crypted data.
 func (s *TransactionAPI) CryptTrustedTransaction(ctx context.Context, input hexutil.Bytes) (hexutil.Bytes, error) {
-	if s.trustedEngine != nil {
-		return s.trustedEngine.Crypt(input)
-	} else {
-		return []byte{}, errors.New("trusted engine is not exist")
-	}
+	return s.b.CryptTrustedTransaction(input)
 }
 
 // SendTrustedTransaction send trusted transaction to trusted engine.
 func (s *TransactionAPI) SendTrustedTransaction(ctx context.Context, input hexutil.Bytes) (*engine.SendTrustedTransacionResult, error) {
-	if s.trustedEngine != nil {
-		tx := trustedtype.TrustedCryptTx(input)
-		return s.trustedEngine.AddLocalTrustedTx(tx)
-	} else {
-		return nil, errors.New("trusted engine is not exist")
-	}
+	return s.b.CommitTrustedTx(input)
 }
 
 // DebugAPI is the collection of Ethereum APIs exposed over the debugging

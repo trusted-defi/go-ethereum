@@ -27,9 +27,10 @@ type TrustedEngineClient struct {
 	client trustedv1.TrustedServiceClient
 }
 
-func NewTrustedEngineClient() *TrustedEngineClient {
+func NewTrustedEngineClient(config trustedtype.TrustedConfig) *TrustedEngineClient {
 	c := new(TrustedEngineClient)
-	client, err := grpc.Dial(":3802", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	//client, err := grpc.Dial(":3802", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := grpc.Dial(config.TrustedClient, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error("netserver connect failed", "err", err)
 	}
@@ -269,12 +270,13 @@ func (t *TrustedEngineClient) AddLocalTrustedTx(tx trustedtype.TrustedCryptTx) (
 func (t *TrustedEngineClient) AddRemoteTrustedTx(txs []trustedtype.TrustedCryptTx) ([]*SendTrustedTransacionResult, error) {
 	req := new(trustedv1.AddTrustedTxsRequest)
 	req.CtyptedTxs = parseTrustedTxsToList(txs)
+	res := make([]*SendTrustedTransacionResult, len(txs))
+
 	resp, err := t.client.AddRemoteTrustedTxs(context.Background(), req)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	res := make([]*SendTrustedTransacionResult, len(txs))
-	for _, response := range resp.Results {
+	for i, response := range resp.Results {
 		result := new(SendTrustedTransacionResult)
 		if len(response.Error) > 0 {
 			result.Error = errors.New(response.Error)
@@ -283,6 +285,7 @@ func (t *TrustedEngineClient) AddRemoteTrustedTx(txs []trustedtype.TrustedCryptT
 			result.Hash = common.BytesToHash(response.Hash)
 			result.Error = nil
 		}
+		res[i] = result
 	}
 	return res, nil
 }

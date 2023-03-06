@@ -18,6 +18,7 @@ package eth
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/log"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -77,6 +78,7 @@ func (h *ethHandler) Handle(peer *eth.Peer, packet eth.Packet) error {
 		return h.txFetcher.Enqueue(peer.ID(), *packet, true)
 	case *eth.NewTrustedTransactionsPacket:
 		// todo: trusted-defi add trusted tx to trusted engine.
+		log.Debug("add remotes trusted tx to txpool", "txs", len(*packet))
 		h.txpool.AddRemotesTrusted(*packet)
 		return nil
 

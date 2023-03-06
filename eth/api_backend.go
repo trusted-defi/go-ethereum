@@ -19,6 +19,8 @@ package eth
 import (
 	"context"
 	"errors"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/trusted/engine"
 	"math/big"
 	"time"
 
@@ -51,6 +53,14 @@ type EthAPIBackend struct {
 // ChainConfig returns the active chain configuration.
 func (b *EthAPIBackend) ChainConfig() *params.ChainConfig {
 	return b.eth.blockchain.Config()
+}
+
+func (b *EthAPIBackend) CryptTrustedTransaction(input hexutil.Bytes) (hexutil.Bytes, error) {
+	return b.eth.txPool.CryptTrustedTransaction(input)
+}
+
+func (b *EthAPIBackend) CommitTrustedTx(input hexutil.Bytes) (*engine.SendTrustedTransacionResult, error) {
+	return b.eth.txPool.AddTrustedTransaction(input)
 }
 
 func (b *EthAPIBackend) CurrentBlock() *types.Block {
