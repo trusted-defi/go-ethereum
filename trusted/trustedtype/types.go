@@ -10,7 +10,6 @@ type TrustedConfig struct {
 	TrustedClient string
 }
 
-// todo implement rlp
 type TrustedCryptTx []byte
 
 func (t TrustedCryptTx) Hash() common.Hash {

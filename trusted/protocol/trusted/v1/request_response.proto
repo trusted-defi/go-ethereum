@@ -149,6 +149,82 @@ message AddTrustedTxsResponse {
     repeated AddTrustedTxResult results = 1;
 }
 
+message CheckSecretKeyRequest {
+}
+
+message CheckSecretKeyResponse {
+    bool exist = 1;
+}
+
+message GetAuthDataRequest {
+    string peer_id = 1;
+}
+
+message GetAuthDataResponse {
+    bytes auth_data = 1;
+}
+
+message VerifyAuthRequest {
+    string peer_id = 1;
+    bytes auth_data = 2;
+}
+
+message VerifyAuthResponse {
+    string error = 1;
+}
+
+message GetVerifyDataRequest {
+    string peer_id = 1;
+}
+
+message GetVerifyDataResponse {
+    bytes verify_data = 1;
+}
+
+message VerifyRemoteVerifyRequest {
+    string peer_id = 1;
+    bytes verify_data = 2;
+}
+
+message VerifyRemoteVerifyResponse {
+    string error = 1;
+}
+
+message GetRequestKeyDataRequest {
+    string peer_id = 1;
+}
+
+message GetRequestKeyDataResponse {
+    bytes request_key_data = 1;
+}
+
+message VerifyRequestKeyDataRequest {
+    string peer_id = 1;
+    bytes request_key_data = 2;
+}
+
+message VerifyRequestKeyDataResponse {
+    string error = 1;
+}
+
+message GetResponseKeyDataRequest {
+    string peer_id = 1;
+}
+
+message GetResponseKeyDataResponse {
+    bytes response_key_data = 1;
+}
+
+message VerifyResponseKeyRequest {
+    string peer_id = 1;
+    bytes response_key_data = 2;
+}
+
+message VerifyResponseKeyResponse {
+    string error = 1;
+}
+
+
 message FillBlockRequest {
     bytes params = 1;
 }

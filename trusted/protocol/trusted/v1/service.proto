@@ -36,6 +36,17 @@ service TrustedService {
     rpc AddLocalTrustedTxs(AddTrustedTxsRequest) returns (AddTrustedTxsResponse) {}
     rpc AddRemoteTrustedTxs(AddTrustedTxsRequest) returns (AddTrustedTxsResponse) {}
 
+    // api for p2p handshake secret key.
+    rpc CheckSecretKey(google.protobuf.Empty) returns (CheckSecretKeyResponse) {}
+    rpc GetAuthData(GetAuthDataRequest) returns (GetAuthDataResponse) {}
+    rpc VerifyAuth(VerifyAuthRequest) returns (VerifyAuthResponse) {}
+    rpc GetVerifyData(GetVerifyDataRequest) returns (GetVerifyDataResponse) {}
+    rpc VerifyRemoteVerify(VerifyRemoteVerifyRequest) returns (VerifyRemoteVerifyResponse) {}
+    rpc GetRequestKeyData(GetRequestKeyDataRequest) returns (GetRequestKeyDataResponse) {}
+    rpc VerifyRequestKeyData(VerifyRequestKeyDataRequest) returns (VerifyRequestKeyDataResponse) {}
+    rpc GetResponseKeyData(GetResponseKeyDataRequest) returns (GetResponseKeyDataResponse) {}
+    rpc VerifyResponseKey(VerifyResponseKeyRequest) returns (VerifyResponseKeyResponse) {}
+
     rpc FillBlock(FillBlockRequest) returns (FillBlockResponse) {}
 }
 

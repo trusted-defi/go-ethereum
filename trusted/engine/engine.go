@@ -292,56 +292,115 @@ func (t *TrustedEngineClient) AddRemoteTrustedTx(txs []trustedtype.TrustedCryptT
 
 // CheckSecretKey check secretkey already exist or not.
 func (t *TrustedEngineClient) CheckSecretKey() (bool, error) {
-	//todo: implement
-	return true, nil
+	res, err := t.client.CheckSecretKey(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		return false, err
+	}
+	return res.Exist, nil
 }
 
 // GetAuthData generate a remote report at begin of a auth-verify process.
 func (t *TrustedEngineClient) GetAuthData(peerId string) ([]byte, error) {
-	//todo: implement
-	return []byte{}, ErrClientNotReady
+	req := new(trustedv1.GetAuthDataRequest)
+	req.PeerId = peerId
+	res, err := t.client.GetAuthData(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	return res.AuthData, err
 }
 
 // VerifyAuth verify auth data received from remote peer
 func (t *TrustedEngineClient) VerifyAuth(authData []byte, peerId string) error {
-	//todo: implement
-	return ErrClientNotReady
+	req := new(trustedv1.VerifyAuthRequest)
+	req.PeerId = peerId
+	req.AuthData = authData
+	res, err := t.client.VerifyAuth(context.Background(), req)
+	if err != nil {
+		return err
+	}
+	if len(res.Error) > 0 {
+		return errors.New(res.Error)
+	}
+	return nil
 }
 
 // GetVerifyData generate a remote report used to verify remote peer..
 func (t *TrustedEngineClient) GetVerifyData(peerId string) ([]byte, error) {
-	//todo: implement
-	return nil, ErrClientNotReady
+	req := new(trustedv1.GetVerifyDataRequest)
+	req.PeerId = peerId
+	res, err := t.client.GetVerifyData(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	return res.VerifyData, err
 }
 
 // VerifyRemoteVerify verify remote verify-data received from remote peer..
 func (t *TrustedEngineClient) VerifyRemoteVerify(verifyData []byte, peerId string) error {
-	//todo: implement
-	return ErrClientNotReady
+	req := new(trustedv1.VerifyRemoteVerifyRequest)
+	req.PeerId = peerId
+	req.VerifyData = verifyData
+	res, err := t.client.VerifyRemoteVerify(context.Background(), req)
+	if err != nil {
+		return err
+	}
+	if len(res.Error) > 0 {
+		return errors.New(res.Error)
+	}
+	return nil
 }
 
 // GetRequestKeyData generate a remote report used to request secret key.
 func (t *TrustedEngineClient) GetRequestKeyData(peerId string) ([]byte, error) {
-	//todo: implement
-	return nil, ErrClientNotReady
+	req := new(trustedv1.GetRequestKeyDataRequest)
+	req.PeerId = peerId
+	res, err := t.client.GetRequestKeyData(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	return res.RequestKeyData, err
 }
 
 // VerifyRequestKeyData verify remote verify-data received from remote peer..
 func (t *TrustedEngineClient) VerifyRequestKeyData(request []byte, peerId string) error {
-	//todo: implement
-	return ErrClientNotReady
+	req := new(trustedv1.VerifyRequestKeyDataRequest)
+	req.PeerId = peerId
+	req.RequestKeyData = request
+	res, err := t.client.VerifyRequestKeyData(context.Background(), req)
+	if err != nil {
+		return err
+	}
+	if len(res.Error) > 0 {
+		return errors.New(res.Error)
+	}
+	return nil
 }
 
 // GetResponseKeyData generate a remote report used to request secret key.
 func (t *TrustedEngineClient) GetResponseKeyData(peerId string) ([]byte, error) {
-	//todo: implement
-	return nil, ErrClientNotReady
+	req := new(trustedv1.GetResponseKeyDataRequest)
+	req.PeerId = peerId
+	res, err := t.client.GetResponseKeyData(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	return res.ResponseKeyData, err
 }
 
 // VerifyResponseKey verify remote verify-data received from remote peer..
 func (t *TrustedEngineClient) VerifyResponseKey(response []byte, peerId string) error {
-	//todo: implement
-	return ErrClientNotReady
+	req := new(trustedv1.VerifyResponseKeyRequest)
+	req.PeerId = peerId
+	req.ResponseKeyData = response
+	res, err := t.client.VerifyResponseKey(context.Background(), req)
+	if err != nil {
+		return err
+	}
+	if len(res.Error) > 0 {
+		return errors.New(res.Error)
+	}
+	return nil
 }
 
 type TrustedPool interface {

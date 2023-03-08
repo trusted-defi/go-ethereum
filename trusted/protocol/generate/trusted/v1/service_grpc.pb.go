@@ -46,6 +46,16 @@ type TrustedServiceClient interface {
 	Crypt(ctx context.Context, in *CryptRequest, opts ...grpc.CallOption) (*CryptResponse, error)
 	AddLocalTrustedTxs(ctx context.Context, in *AddTrustedTxsRequest, opts ...grpc.CallOption) (*AddTrustedTxsResponse, error)
 	AddRemoteTrustedTxs(ctx context.Context, in *AddTrustedTxsRequest, opts ...grpc.CallOption) (*AddTrustedTxsResponse, error)
+	// api for p2p handshake secret key.
+	CheckSecretKey(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSecretKeyResponse, error)
+	GetAuthData(ctx context.Context, in *GetAuthDataRequest, opts ...grpc.CallOption) (*GetAuthDataResponse, error)
+	VerifyAuth(ctx context.Context, in *VerifyAuthRequest, opts ...grpc.CallOption) (*VerifyAuthResponse, error)
+	GetVerifyData(ctx context.Context, in *GetVerifyDataRequest, opts ...grpc.CallOption) (*GetVerifyDataResponse, error)
+	VerifyRemoteVerify(ctx context.Context, in *VerifyRemoteVerifyRequest, opts ...grpc.CallOption) (*VerifyRemoteVerifyResponse, error)
+	GetRequestKeyData(ctx context.Context, in *GetRequestKeyDataRequest, opts ...grpc.CallOption) (*GetRequestKeyDataResponse, error)
+	VerifyRequestKeyData(ctx context.Context, in *VerifyRequestKeyDataRequest, opts ...grpc.CallOption) (*VerifyRequestKeyDataResponse, error)
+	GetResponseKeyData(ctx context.Context, in *GetResponseKeyDataRequest, opts ...grpc.CallOption) (*GetResponseKeyDataResponse, error)
+	VerifyResponseKey(ctx context.Context, in *VerifyResponseKeyRequest, opts ...grpc.CallOption) (*VerifyResponseKeyResponse, error)
 	FillBlock(ctx context.Context, in *FillBlockRequest, opts ...grpc.CallOption) (*FillBlockResponse, error)
 }
 
@@ -242,6 +252,87 @@ func (c *trustedServiceClient) AddRemoteTrustedTxs(ctx context.Context, in *AddT
 	return out, nil
 }
 
+func (c *trustedServiceClient) CheckSecretKey(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CheckSecretKeyResponse, error) {
+	out := new(CheckSecretKeyResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/CheckSecretKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) GetAuthData(ctx context.Context, in *GetAuthDataRequest, opts ...grpc.CallOption) (*GetAuthDataResponse, error) {
+	out := new(GetAuthDataResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/GetAuthData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) VerifyAuth(ctx context.Context, in *VerifyAuthRequest, opts ...grpc.CallOption) (*VerifyAuthResponse, error) {
+	out := new(VerifyAuthResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/VerifyAuth", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) GetVerifyData(ctx context.Context, in *GetVerifyDataRequest, opts ...grpc.CallOption) (*GetVerifyDataResponse, error) {
+	out := new(GetVerifyDataResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/GetVerifyData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) VerifyRemoteVerify(ctx context.Context, in *VerifyRemoteVerifyRequest, opts ...grpc.CallOption) (*VerifyRemoteVerifyResponse, error) {
+	out := new(VerifyRemoteVerifyResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/VerifyRemoteVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) GetRequestKeyData(ctx context.Context, in *GetRequestKeyDataRequest, opts ...grpc.CallOption) (*GetRequestKeyDataResponse, error) {
+	out := new(GetRequestKeyDataResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/GetRequestKeyData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) VerifyRequestKeyData(ctx context.Context, in *VerifyRequestKeyDataRequest, opts ...grpc.CallOption) (*VerifyRequestKeyDataResponse, error) {
+	out := new(VerifyRequestKeyDataResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/VerifyRequestKeyData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) GetResponseKeyData(ctx context.Context, in *GetResponseKeyDataRequest, opts ...grpc.CallOption) (*GetResponseKeyDataResponse, error) {
+	out := new(GetResponseKeyDataResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/GetResponseKeyData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *trustedServiceClient) VerifyResponseKey(ctx context.Context, in *VerifyResponseKeyRequest, opts ...grpc.CallOption) (*VerifyResponseKeyResponse, error) {
+	out := new(VerifyResponseKeyResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/VerifyResponseKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *trustedServiceClient) FillBlock(ctx context.Context, in *FillBlockRequest, opts ...grpc.CallOption) (*FillBlockResponse, error) {
 	out := new(FillBlockResponse)
 	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/FillBlock", in, out, opts...)
@@ -278,6 +369,16 @@ type TrustedServiceServer interface {
 	Crypt(context.Context, *CryptRequest) (*CryptResponse, error)
 	AddLocalTrustedTxs(context.Context, *AddTrustedTxsRequest) (*AddTrustedTxsResponse, error)
 	AddRemoteTrustedTxs(context.Context, *AddTrustedTxsRequest) (*AddTrustedTxsResponse, error)
+	// api for p2p handshake secret key.
+	CheckSecretKey(context.Context, *emptypb.Empty) (*CheckSecretKeyResponse, error)
+	GetAuthData(context.Context, *GetAuthDataRequest) (*GetAuthDataResponse, error)
+	VerifyAuth(context.Context, *VerifyAuthRequest) (*VerifyAuthResponse, error)
+	GetVerifyData(context.Context, *GetVerifyDataRequest) (*GetVerifyDataResponse, error)
+	VerifyRemoteVerify(context.Context, *VerifyRemoteVerifyRequest) (*VerifyRemoteVerifyResponse, error)
+	GetRequestKeyData(context.Context, *GetRequestKeyDataRequest) (*GetRequestKeyDataResponse, error)
+	VerifyRequestKeyData(context.Context, *VerifyRequestKeyDataRequest) (*VerifyRequestKeyDataResponse, error)
+	GetResponseKeyData(context.Context, *GetResponseKeyDataRequest) (*GetResponseKeyDataResponse, error)
+	VerifyResponseKey(context.Context, *VerifyResponseKeyRequest) (*VerifyResponseKeyResponse, error)
 	FillBlock(context.Context, *FillBlockRequest) (*FillBlockResponse, error)
 	mustEmbedUnimplementedTrustedServiceServer()
 }
@@ -339,6 +440,33 @@ func (UnimplementedTrustedServiceServer) AddLocalTrustedTxs(context.Context, *Ad
 }
 func (UnimplementedTrustedServiceServer) AddRemoteTrustedTxs(context.Context, *AddTrustedTxsRequest) (*AddTrustedTxsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddRemoteTrustedTxs not implemented")
+}
+func (UnimplementedTrustedServiceServer) CheckSecretKey(context.Context, *emptypb.Empty) (*CheckSecretKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckSecretKey not implemented")
+}
+func (UnimplementedTrustedServiceServer) GetAuthData(context.Context, *GetAuthDataRequest) (*GetAuthDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthData not implemented")
+}
+func (UnimplementedTrustedServiceServer) VerifyAuth(context.Context, *VerifyAuthRequest) (*VerifyAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyAuth not implemented")
+}
+func (UnimplementedTrustedServiceServer) GetVerifyData(context.Context, *GetVerifyDataRequest) (*GetVerifyDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVerifyData not implemented")
+}
+func (UnimplementedTrustedServiceServer) VerifyRemoteVerify(context.Context, *VerifyRemoteVerifyRequest) (*VerifyRemoteVerifyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyRemoteVerify not implemented")
+}
+func (UnimplementedTrustedServiceServer) GetRequestKeyData(context.Context, *GetRequestKeyDataRequest) (*GetRequestKeyDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRequestKeyData not implemented")
+}
+func (UnimplementedTrustedServiceServer) VerifyRequestKeyData(context.Context, *VerifyRequestKeyDataRequest) (*VerifyRequestKeyDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyRequestKeyData not implemented")
+}
+func (UnimplementedTrustedServiceServer) GetResponseKeyData(context.Context, *GetResponseKeyDataRequest) (*GetResponseKeyDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetResponseKeyData not implemented")
+}
+func (UnimplementedTrustedServiceServer) VerifyResponseKey(context.Context, *VerifyResponseKeyRequest) (*VerifyResponseKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyResponseKey not implemented")
 }
 func (UnimplementedTrustedServiceServer) FillBlock(context.Context, *FillBlockRequest) (*FillBlockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FillBlock not implemented")
@@ -683,6 +811,168 @@ func _TrustedService_AddRemoteTrustedTxs_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TrustedService_CheckSecretKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).CheckSecretKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/CheckSecretKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).CheckSecretKey(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_GetAuthData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).GetAuthData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/GetAuthData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).GetAuthData(ctx, req.(*GetAuthDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_VerifyAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).VerifyAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/VerifyAuth",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).VerifyAuth(ctx, req.(*VerifyAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_GetVerifyData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVerifyDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).GetVerifyData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/GetVerifyData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).GetVerifyData(ctx, req.(*GetVerifyDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_VerifyRemoteVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyRemoteVerifyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).VerifyRemoteVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/VerifyRemoteVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).VerifyRemoteVerify(ctx, req.(*VerifyRemoteVerifyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_GetRequestKeyData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRequestKeyDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).GetRequestKeyData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/GetRequestKeyData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).GetRequestKeyData(ctx, req.(*GetRequestKeyDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_VerifyRequestKeyData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyRequestKeyDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).VerifyRequestKeyData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/VerifyRequestKeyData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).VerifyRequestKeyData(ctx, req.(*VerifyRequestKeyDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_GetResponseKeyData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetResponseKeyDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).GetResponseKeyData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/GetResponseKeyData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).GetResponseKeyData(ctx, req.(*GetResponseKeyDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TrustedService_VerifyResponseKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyResponseKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).VerifyResponseKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/VerifyResponseKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).VerifyResponseKey(ctx, req.(*VerifyResponseKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _TrustedService_FillBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FillBlockRequest)
 	if err := dec(in); err != nil {
@@ -775,6 +1065,42 @@ var TrustedService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddRemoteTrustedTxs",
 			Handler:    _TrustedService_AddRemoteTrustedTxs_Handler,
+		},
+		{
+			MethodName: "CheckSecretKey",
+			Handler:    _TrustedService_CheckSecretKey_Handler,
+		},
+		{
+			MethodName: "GetAuthData",
+			Handler:    _TrustedService_GetAuthData_Handler,
+		},
+		{
+			MethodName: "VerifyAuth",
+			Handler:    _TrustedService_VerifyAuth_Handler,
+		},
+		{
+			MethodName: "GetVerifyData",
+			Handler:    _TrustedService_GetVerifyData_Handler,
+		},
+		{
+			MethodName: "VerifyRemoteVerify",
+			Handler:    _TrustedService_VerifyRemoteVerify_Handler,
+		},
+		{
+			MethodName: "GetRequestKeyData",
+			Handler:    _TrustedService_GetRequestKeyData_Handler,
+		},
+		{
+			MethodName: "VerifyRequestKeyData",
+			Handler:    _TrustedService_VerifyRequestKeyData_Handler,
+		},
+		{
+			MethodName: "GetResponseKeyData",
+			Handler:    _TrustedService_GetResponseKeyData_Handler,
+		},
+		{
+			MethodName: "VerifyResponseKey",
+			Handler:    _TrustedService_VerifyResponseKey_Handler,
 		},
 		{
 			MethodName: "FillBlock",
