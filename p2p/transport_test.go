@@ -17,6 +17,7 @@
 package p2p
 
 import (
+	"bytes"
 	"errors"
 	"reflect"
 	"sync"
@@ -27,6 +28,53 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/simulations/pipes"
 )
 
+type TestTrustedEngine struct{}
+
+func (t *TestTrustedEngine) GetAuthData(peerId string) ([]byte, error) {
+	return nil, nil
+}
+
+func (t *TestTrustedEngine) VerifyAuth(authData []byte, peerId string) error {
+	if !bytes.Equal(authData, []byte("auth")) {
+		return errors.New("auth data error")
+	}
+	return nil
+}
+
+func (t *TestTrustedEngine) GetVerifyData(peerId string) ([]byte, error) {
+	return nil, nil
+}
+
+func (t *TestTrustedEngine) VerifyRemoteVerify(verifyData []byte, peerId string) error {
+	if !bytes.Equal(verifyData, []byte("verify")) {
+		return errors.New("verify data error")
+	}
+
+	return nil
+}
+
+func (t *TestTrustedEngine) GetRequestKeyData(peerId string) ([]byte, error) {
+	return nil, nil
+}
+
+func (t *TestTrustedEngine) VerifyRequestKeyData(request []byte, peerId string) error {
+	if !bytes.Equal(request, []byte("request key")) {
+		return errors.New("request key data error")
+	}
+	return nil
+}
+
+func (t *TestTrustedEngine) GetResponseKeyData(peerId string) ([]byte, error) {
+	return nil, nil
+}
+
+func (t *TestTrustedEngine) VerifyResponseKey(response []byte, peerId string) error {
+	if !bytes.Equal(response, []byte("response key")) {
+		return errors.New("response key data error")
+	}
+	return nil
+}
+
 func TestProtocolHandshake(t *testing.T) {
 	var (
 		prv0, _ = crypto.GenerateKey()
@@ -36,6 +84,18 @@ func TestProtocolHandshake(t *testing.T) {
 		prv1, _ = crypto.GenerateKey()
 		pub1    = crypto.FromECDSAPub(&prv1.PublicKey)[1:]
 		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
+
+		trustedAuthMsg_th0 = &trustedHandshake{Version: 1, ID: pub0, Msg: []byte("auth")}
+		trustedAuthMsg_th1 = &trustedHandshake{Version: 1, ID: pub1, Msg: []byte("auth")}
+
+		trustedVerifyMsg_th0 = &trustedHandshake{Version: 1, ID: pub1, Msg: []byte("verify")}
+		trustedVerifyMsg_th1 = &trustedHandshake{Version: 1, ID: pub0, Msg: []byte("verify")}
+
+		trustedGetReqKeyMsg_th0 = &trustedHandshake{Version: 1, ID: pub0, Msg: []byte("request key")}
+		trustedGetReqKeyMsg_th1 = &trustedHandshake{Version: 1, ID: pub1, Msg: []byte("request key")}
+
+		trustedGetRespKeyMsg_th0 = &trustedHandshake{Version: 1, ID: pub1, Msg: []byte("response key")}
+		trustedGetRespKeyMsg_th1 = &trustedHandshake{Version: 1, ID: pub0, Msg: []byte("response key")}
 
 		wg sync.WaitGroup
 	)
@@ -70,6 +130,27 @@ func TestProtocolHandshake(t *testing.T) {
 			t.Errorf("dial side proto handshake mismatch:\ngot: %s\nwant: %s\n", spew.Sdump(phs), spew.Sdump(hs1))
 			return
 		}
+
+		if err := frame.doTrustedHandshake(trustedAuthMsg_th0, trustedAuthMsg, &TestTrustedEngine{}); err != nil {
+			t.Errorf("dial side trusted handshake error: %v", err)
+			return
+		}
+
+		if err := frame.doTrustedHandshake(trustedVerifyMsg_th0, trustedVerifyMsg, &TestTrustedEngine{}); err != nil {
+			t.Errorf("dial side trusted handshake error: %v", err)
+			return
+		}
+
+		if err := frame.doTrustedHandshake(trustedGetReqKeyMsg_th0, trustedGetReqKeyMsg, &TestTrustedEngine{}); err != nil {
+			t.Errorf("dial side trusted handshake error: %v", err)
+			return
+		}
+
+		if err := frame.doTrustedHandshake(trustedGetRespKeyMsg_th0, trustedGetRespKeyMsg, &TestTrustedEngine{}); err != nil {
+			t.Errorf("dial side trusted handshake error: %v", err)
+			return
+		}
+
 		frame.close(DiscQuitting)
 	}()
 	go func() {
@@ -94,6 +175,26 @@ func TestProtocolHandshake(t *testing.T) {
 		phs.Rest = nil
 		if !reflect.DeepEqual(phs, hs0) {
 			t.Errorf("listen side proto handshake mismatch:\ngot: %s\nwant: %s\n", spew.Sdump(phs), spew.Sdump(hs0))
+			return
+		}
+
+		if err := rlpx.doTrustedHandshake(trustedAuthMsg_th1, trustedAuthMsg, &TestTrustedEngine{}); err != nil {
+			t.Errorf("listen side trusted handshake error: %v", err)
+			return
+		}
+
+		if err := rlpx.doTrustedHandshake(trustedVerifyMsg_th1, trustedVerifyMsg, &TestTrustedEngine{}); err != nil {
+			t.Errorf("listen side trusted handshake error: %v", err)
+			return
+		}
+
+		if err := rlpx.doTrustedHandshake(trustedGetReqKeyMsg_th1, trustedGetReqKeyMsg, &TestTrustedEngine{}); err != nil {
+			t.Errorf("listen side trusted handshake error: %v", err)
+			return
+		}
+
+		if err := rlpx.doTrustedHandshake(trustedGetRespKeyMsg_th1, trustedGetRespKeyMsg, &TestTrustedEngine{}); err != nil {
+			t.Errorf("listen side trusted handshake error: %v", err)
 			return
 		}
 

@@ -477,6 +477,11 @@ func (c *setupTransport) doProtoHandshake(our *protoHandshake) (*protoHandshake,
 	}
 	return &c.phs, nil
 }
+
+func (*setupTransport) doTrustedHandshake(our *trustedHandshake, msgType uint64, in ITrustedEngine) error {
+	panic("not implemented")
+}
+
 func (c *setupTransport) close(err error) {
 	c.calls += "close,"
 	c.closeErr = err
