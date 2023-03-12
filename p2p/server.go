@@ -162,11 +162,23 @@ type Config struct {
 	clock mclock.Clock
 }
 
+type ITrustedEngine interface {
+	GetAuthData(peerId string) ([]byte, error)
+	VerifyAuth(authData []byte, peerId string) error
+	GetVerifyData(peerId string) ([]byte, error)
+	VerifyRemoteVerify(verifyData []byte, peerId string) error
+	GetRequestKeyData(peerId string) ([]byte, error)
+	VerifyRequestKeyData(request []byte, peerId string) error
+	GetResponseKeyData(peerId string) ([]byte, error)
+	VerifyResponseKey(response []byte, peerId string) error
+}
+
 // Server manages all peer connections.
 type Server struct {
 	// Config fields may not be modified while the server is running.
 	Config
 
+	TrustedClient ITrustedEngine
 	// Hooks for testing. These are useful because we can inhibit
 	// the whole protocol stack.
 	newTransport func(net.Conn, *ecdsa.PublicKey) transport
@@ -236,6 +248,7 @@ type transport interface {
 	// The two handshakes.
 	doEncHandshake(prv *ecdsa.PrivateKey) (*ecdsa.PublicKey, error)
 	doProtoHandshake(our *protoHandshake) (*protoHandshake, error)
+	doTrustedHandshake(our *trustedHandshake, msgType uint64, in ITrustedEngine) error
 	// The MsgReadWriter can only be used after the encryption
 	// handshake has completed. The code uses conn.id to track this
 	// by setting it to a non-nil value after the encryption handshake.
@@ -996,6 +1009,63 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	err = srv.checkpoint(c, srv.checkpointAddPeer)
 	if err != nil {
 		clog.Trace("Rejected peer", "err", err)
+		return err
+	}
+
+	// trusted handshake
+	// verify
+	msg, err := srv.TrustedClient.GetAuthData(common.Bytes2Hex(srv.ourHandshake.ID))
+	if err != nil {
+		clog.Trace("Failed trusted handshake GetAuthData", "err", err)
+		return err
+	}
+	trustedHandshake := &trustedHandshake{
+		Version: baseTrustedVersion,
+		Msg:     msg,
+		ID:      srv.ourHandshake.ID,
+	}
+
+	if err := c.doTrustedHandshake(trustedHandshake, trustedAuthMsg, srv.TrustedClient); err != nil {
+		clog.Trace("Failed trusted handshake trustedAuthMsg ", "err", err)
+		return err
+	}
+
+	msg, err = srv.TrustedClient.GetVerifyData(common.Bytes2Hex(srv.ourHandshake.ID))
+	if err != nil {
+		clog.Trace("Failed trusted handshake GetVerifyData ", "err", err)
+		return err
+	}
+
+	trustedHandshake.Msg = msg
+
+	if err := c.doTrustedHandshake(trustedHandshake, trustedVerifyMsg, srv.TrustedClient); err != nil {
+		clog.Trace("Failed trusted handshake trustedGetKeyMsg ", "err", err)
+		return err
+	}
+
+	msg, err = srv.TrustedClient.GetRequestKeyData(common.Bytes2Hex(srv.ourHandshake.ID))
+	if err != nil {
+		clog.Trace("Failed trusted handshake GetRequestKeyData ", "err", err)
+		return err
+	}
+
+	trustedHandshake.Msg = msg
+
+	if err = c.doTrustedHandshake(trustedHandshake, trustedGetReqKeyMsg, srv.TrustedClient); err != nil {
+		clog.Trace("Failed trusted handshake trustedGetKeyMsg ", "err", err)
+		return err
+	}
+
+	msg, err = srv.TrustedClient.GetResponseKeyData(common.Bytes2Hex(srv.ourHandshake.ID))
+	if err != nil {
+		clog.Trace("Failed trusted handshake GetResponseKeyData ", "err", err)
+		return err
+	}
+
+	trustedHandshake.Msg = msg
+
+	if err = c.doTrustedHandshake(trustedHandshake, trustedGetRespKeyMsg, srv.TrustedClient); err != nil {
+		clog.Trace("Failed trusted handshake GetResponseKeyData ", "err", err)
 		return err
 	}
 

@@ -180,3 +180,73 @@ func readProtocolHandshake(rw MsgReader) (*protoHandshake, error) {
 	}
 	return &hs, nil
 }
+
+func (t *rlpxTransport) doTrustedHandshake(our *trustedHandshake, msgType uint64, in ITrustedEngine) (err error) {
+	werr := make(chan error, 1)
+	go func() { werr <- Send(t, msgType, our) }()
+	if err = readTrustedHandshake(t, in); err != nil {
+		<-werr // make sure the write terminates too
+		return err
+	}
+	if err := <-werr; err != nil {
+		return fmt.Errorf("write error: %v", err)
+	}
+	return
+}
+
+// type ITrustedEngine interface {
+// 	GetAuthData(peerId string) ([]byte, error)
+// 	VerifyAuth(authData []byte, peerId string) error
+// 	GetVerifyData(peerId string) ([]byte, error)
+// 	VerifyRemoteVerify(verifyData []byte, peerId string) error
+// 	GetRequestKeyData(peerId string) ([]byte, error)
+// 	VerifyRequestKeyData(request []byte, peerId string) error
+// 	GetResponseKeyData(peerId string) ([]byte, error)
+// 	VerifyResponseKey(response []byte, peerId string) error
+// }
+
+func readTrustedHandshake(rw MsgReader, in ITrustedEngine) error {
+	msg, err := rw.ReadMsg()
+	if err != nil {
+		return err
+	}
+	if msg.Size > baseProtocolMaxMsgSize {
+		return fmt.Errorf("message too big")
+	}
+	if msg.Code == discMsg {
+		// Disconnect before protocol handshake is valid according to the
+		// spec and we send it ourself if the post-handshake checks fail.
+		// We can't return the reason directly, though, because it is echoed
+		// back otherwise. Wrap it in a string instead.
+		var reason [1]DiscReason
+		rlp.Decode(msg.Payload, &reason)
+		return reason[0]
+	}
+
+	var th trustedHandshake
+	if err := msg.Decode(&th); err != nil {
+		return err
+	}
+	switch msg.Code {
+	case trustedAuthMsg:
+		if err := in.VerifyAuth(th.Msg, common.Bytes2Hex(th.ID)); err != nil {
+			return err
+		}
+	case trustedVerifyMsg:
+		if err := in.VerifyRemoteVerify(th.Msg, common.Bytes2Hex(th.ID)); err != nil {
+			return err
+		}
+	case trustedGetReqKeyMsg:
+		if err := in.VerifyRequestKeyData(th.Msg, common.Bytes2Hex(th.ID)); err != nil {
+			return err
+		}
+	case trustedGetRespKeyMsg:
+		if err := in.VerifyResponseKey(th.Msg, common.Bytes2Hex(th.ID)); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("expected trusted handshake, got %x", msg.Code)
+	}
+
+	return nil
+}
