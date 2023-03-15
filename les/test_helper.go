@@ -24,7 +24,6 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"math/big"
 	"sync/atomic"
 	"testing"
@@ -272,10 +271,7 @@ func newTestServerHandler(blocks int, indexers []*core.ChainIndexer, db ethdb.Da
 
 	txpoolConfig := core.DefaultTxPoolConfig
 	txpoolConfig.Journal = ""
-	txpool := core.NewTxPool(txpoolConfig, gspec.Config, simulation.Blockchain(), trustedtype.TrustedConfig{
-		ChainServer:   "3801",
-		TrustedClient: "3802",
-	})
+	txpool := core.NewTxPool(txpoolConfig, gspec.Config, simulation.Blockchain())
 	if indexers != nil {
 		checkpointConfig := &params.CheckpointOracleConfig{
 			Address:   crypto.CreateAddress(bankAddr, 0),

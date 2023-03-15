@@ -24,9 +24,9 @@ type TxPool struct {
 	mu            sync.RWMutex
 }
 
-func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain blockChain, trustedConfig trustedtype.TrustedConfig) *TxPool {
+func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain blockChain) *TxPool {
 	pool := &TxPool{
-		client: engine.NewTrustedEngineClient(trustedConfig),
+		client: engine.NewTrustedEngineClient(),
 		quit:   false,
 	}
 	go pool.loop()

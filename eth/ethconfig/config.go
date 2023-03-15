@@ -214,12 +214,6 @@ type Config struct {
 
 	// OverrideTerminalTotalDifficultyPassed (TODO: remove after the fork)
 	OverrideTerminalTotalDifficultyPassed *bool `toml:",omitempty"`
-
-	// Trusted engine
-	TrustedClient string `toml:",omitempty"`
-
-	// Grpc Server
-	ChainServer string `toml:",omitempty"`
 }
 
 // CreateConsensusEngine creates a consensus engine for the given chain configuration.

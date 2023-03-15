@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/trusted/config"
 	trustedv1 "github.com/ethereum/go-ethereum/trusted/protocol/generate/trusted/v1"
 	"github.com/ethereum/go-ethereum/trusted/trustedtype"
 	"google.golang.org/grpc"
@@ -27,10 +28,11 @@ type TrustedEngineClient struct {
 	client trustedv1.TrustedServiceClient
 }
 
-func NewTrustedEngineClient(config trustedtype.TrustedConfig) *TrustedEngineClient {
+func NewTrustedEngineClient() *TrustedEngineClient {
+	teconfig := config.GetConfig()
 	c := new(TrustedEngineClient)
 	//client, err := grpc.Dial(":3802", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	client, err := grpc.Dial(config.TrustedClient, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := grpc.Dial(teconfig.TrustedClient, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error("netserver connect failed", "err", err)
 	}

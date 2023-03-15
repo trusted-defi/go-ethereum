@@ -20,6 +20,7 @@ package utils
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/ethereum/go-ethereum/trusted/config"
 	"math"
 	"math/big"
 	"os"
@@ -1552,8 +1553,7 @@ func SetDataDir(ctx *cli.Context, cfg *node.Config) {
 }
 
 func SetTrusted(ctx *cli.Context, cfg *ethconfig.Config) {
-	cfg.TrustedClient = ctx.String(TrustedClientFlag.Name)
-	cfg.ChainServer = ctx.String(ChainServerFlag.Name)
+	config.SetupTrustedEngineConfig(ctx.String(TrustedClientFlag.Name), ctx.String(ChainServerFlag.Name))
 }
 
 func setGPO(ctx *cli.Context, cfg *gasprice.Config, light bool) {
