@@ -37,7 +37,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/ethereum/go-ethereum/trusted/engine"
 	"github.com/prometheus/tsdb/fileutil"
 )
 
@@ -143,7 +142,6 @@ func New(conf *Config) (*Node, error) {
 	if node.server.Config.NodeDatabase == "" {
 		node.server.Config.NodeDatabase = node.config.NodeDB()
 	}
-	node.server.TrustedClient = engine.NewTrustedEngineClient()
 
 	// Check HTTP/WS prefixes are valid.
 	if err := validatePrefix("HTTP", conf.HTTPPathPrefix); err != nil {

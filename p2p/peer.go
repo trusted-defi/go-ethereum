@@ -46,8 +46,6 @@ const (
 	snappyProtocolVersion = 5
 
 	pingInterval = 15 * time.Second
-
-	baseTrustedVersion = 1
 )
 
 const (
@@ -56,19 +54,7 @@ const (
 	discMsg      = 0x01
 	pingMsg      = 0x02
 	pongMsg      = 0x03
-
-	// trusted
-	trustedAuthMsg       = 0xf0
-	trustedVerifyMsg     = 0xf1
-	trustedGetReqKeyMsg  = 0xf2
-	trustedGetRespKeyMsg = 0xf3
 )
-
-type trustedHandshake struct {
-	Version uint64
-	Msg     []byte
-	ID      []byte // secp256k1 public key
-}
 
 // protoHandshake is the RLP structure of the protocol handshake.
 type protoHandshake struct {
