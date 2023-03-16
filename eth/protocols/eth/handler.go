@@ -180,6 +180,7 @@ var eth66 = map[uint64]msgHandler{
 	GetPooledTransactionsMsg:      handleGetPooledTransactions66,
 	PooledTransactionsMsg:         handlePooledTransactions66,
 	TrustedTransactionsMsg:        handleTrustedTransactionsMsg,
+	TrustedShareSecretKeyMsg:      handleTrustedHandshakeSecretKey,
 }
 
 var eth67 = map[uint64]msgHandler{
@@ -196,6 +197,7 @@ var eth67 = map[uint64]msgHandler{
 	GetPooledTransactionsMsg:      handleGetPooledTransactions66,
 	PooledTransactionsMsg:         handlePooledTransactions66,
 	TrustedTransactionsMsg:        handleTrustedTransactionsMsg,
+	TrustedShareSecretKeyMsg:      handleTrustedHandshakeSecretKey,
 }
 
 // handleMessage is invoked whenever an inbound message is received from a remote

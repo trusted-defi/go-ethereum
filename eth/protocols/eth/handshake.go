@@ -105,3 +105,14 @@ func (p *Peer) readStatus(network uint64, status *StatusPacket, genesis common.H
 	}
 	return nil
 }
+
+func (p *Peer) handshakeSecretKey() {
+	if exist, err := tclient.CheckSecretKey(); err != nil || exist {
+		return
+	}
+	data, err := tclient.GetAuthData(p.ID())
+	if err != nil {
+		return
+	}
+	p.SendHandshakeSecretKeyMsg(data, trustedAuthMsg, baseTrustedVersion)
+}

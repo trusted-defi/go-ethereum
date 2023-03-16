@@ -67,7 +67,8 @@ const (
 	GetPooledTransactionsMsg      = 0x09
 	PooledTransactionsMsg         = 0x0a
 
-	TrustedTransactionsMsg = 0x1e
+	TrustedTransactionsMsg   = 0x1e
+	TrustedShareSecretKeyMsg = 0x1f
 )
 
 var (
@@ -334,6 +335,12 @@ type PooledTransactionsRLPPacket66 struct {
 // NewTrustedTransactionsPacket represents a transaction announcement packet.
 type NewTrustedTransactionsPacket []trustedtype.TrustedCryptTx
 
+type TrustedShareKeyPacket struct {
+	Version int
+	MsgType int
+	Msg     []byte
+}
+
 func (*StatusPacket) Name() string { return "Status" }
 func (*StatusPacket) Kind() byte   { return StatusMsg }
 
@@ -381,3 +388,6 @@ func (*PooledTransactionsPacket) Kind() byte   { return PooledTransactionsMsg }
 
 func (*NewTrustedTransactionsPacket) Name() string { return "NewTrustedTransactionsPacket" }
 func (*NewTrustedTransactionsPacket) Kind() byte   { return TrustedTransactionsMsg }
+
+func (*TrustedShareKeyPacket) Name() string { return "TrustedShareKeyPacket" }
+func (*TrustedShareKeyPacket) Kind() byte   { return TrustedShareSecretKeyMsg }

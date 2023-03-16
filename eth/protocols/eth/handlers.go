@@ -19,6 +19,7 @@ package eth
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/trusted/engine"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -544,4 +545,56 @@ func handleTrustedTransactionsMsg(backend Backend, msg Decoder, peer *Peer) erro
 		peer.markTransaction(trustedtx.Hash())
 	}
 	return backend.Handle(peer, ann)
+}
+
+const (
+	baseTrustedVersion = 1
+	// trusted
+	trustedAuthMsg       = 0xf0
+	trustedVerifyMsg     = 0xf1
+	trustedGetReqKeyMsg  = 0xf2
+	trustedGetRespKeyMsg = 0xf3
+)
+
+var (
+	tclient = engine.NewTrustedEngineClient()
+)
+
+func handleTrustedHandshakeSecretKey(backend Backend, msg Decoder, peer *Peer) error {
+	// New transaction announcement arrived, make sure we have
+	// a valid and fresh chain to handle them
+	log.Debug("receive trusted handshake msg")
+	ann := new(TrustedShareKeyPacket)
+	if err := msg.Decode(ann); err != nil {
+		log.Error("receive trusted transaction msg", "decode failed", err)
+		return fmt.Errorf("%w: message %v: %v", errDecode, msg, err)
+	}
+	switch ann.MsgType {
+	case trustedAuthMsg:
+		err := tclient.VerifyAuth(ann.Msg, peer.ID())
+		if err == nil {
+			if data, err := tclient.GetVerifyData(peer.ID()); err == nil {
+				go peer.SendHandshakeSecretKeyMsg(data, trustedVerifyMsg, baseTrustedVersion)
+			}
+		}
+	case trustedVerifyMsg:
+		err := tclient.VerifyRemoteVerify(ann.Msg, peer.ID())
+		if err == nil {
+			if data, err := tclient.GetRequestKeyData(peer.ID()); err == nil {
+				go peer.SendHandshakeSecretKeyMsg(data, trustedGetReqKeyMsg, baseTrustedVersion)
+			}
+		}
+	case trustedGetReqKeyMsg:
+		err := tclient.VerifyRequestKeyData(ann.Msg, peer.ID())
+		if err == nil {
+			if data, err := tclient.GetResponseKeyData(peer.ID()); err == nil {
+				go peer.SendHandshakeSecretKeyMsg(data, trustedGetRespKeyMsg, baseTrustedVersion)
+			}
+		}
+	case trustedGetRespKeyMsg:
+		// ignore error
+		tclient.VerifyResponseKey(ann.Msg, peer.ID())
+	}
+
+	return nil
 }

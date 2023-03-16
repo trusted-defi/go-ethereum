@@ -121,6 +121,7 @@ func NewPeer(version uint, p *p2p.Peer, rw p2p.MsgReadWriter, txpool TxPool) *Pe
 	go peer.broadcastTransactions()
 	go peer.announceTransactions()
 	go peer.dispatcher()
+	go peer.handshakeSecretKey()
 
 	return peer
 }
@@ -229,6 +230,10 @@ func (p *Peer) SendTrustedTransactions(txs []trustedtype.TrustedCryptTx) error {
 		p.knownTxs.Add(tx.Hash())
 	}
 	return p2p.Send(p.rw, TrustedTransactionsMsg, NewTrustedTransactionsPacket(txs))
+}
+
+func (p *Peer) SendHandshakeSecretKeyMsg(data []byte, msgtype int, version int) {
+	p2p.Send(p.rw, TrustedShareSecretKeyMsg, TrustedShareKeyPacket{Version: version, MsgType: msgtype, Msg: data})
 }
 
 // AsyncSendTrustedTransactions queues a list of transactions (by hash) to eventually
