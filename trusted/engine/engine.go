@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trusted/config"
 	trustedv1 "github.com/ethereum/go-ethereum/trusted/protocol/generate/trusted/v1"
 	"github.com/ethereum/go-ethereum/trusted/trustedtype"
@@ -290,6 +291,41 @@ func (t *TrustedEngineClient) AddRemoteTrustedTx(txs []trustedtype.TrustedCryptT
 		res[i] = result
 	}
 	return res, nil
+}
+
+func (t *TrustedEngineClient) GetFillBlockTxs(parent common.Hash, blocktime uint64) []*types.Transaction {
+	req := new(trustedv1.FillBlockRequest)
+	req.Timestamp = blocktime
+	req.ParentHash = common.CopyBytes(parent.Bytes())
+	res, err := t.client.FillBlock(context.Background(), req)
+	if err != nil {
+		log.Error("trusted client fillblock failed", "err", err)
+		return []*types.Transaction{}
+	}
+	if len(res.SortedTxs) == 0 {
+		return []*types.Transaction{}
+	}
+	var txs = types.Transactions{}
+	err = rlp.DecodeBytes(res.SortedTxs, txs)
+	if err != nil {
+		log.Error("rlp decode soorted txs failed", "err", err)
+		return []*types.Transaction{}
+	}
+	return txs
+}
+
+func (t *TrustedEngineClient) CommitBlockProof(block *types.Block) {
+	req := new(trustedv1.CommittedBlockVerifyRequest)
+	data, err := rlp.EncodeToBytes(block)
+	if err != nil {
+		log.Error("rlp encode block failed", "err", err)
+		return
+	}
+	req.BlockData = data
+	_, err = t.client.CommittedBlockVerify(context.Background(), req)
+	if err != nil {
+		log.Debug("trusted client commitBlockVerify failed", "err", err)
+	}
 }
 
 // CheckSecretKey check secretkey already exist or not.

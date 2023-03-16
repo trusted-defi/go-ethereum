@@ -57,6 +57,7 @@ type TrustedServiceClient interface {
 	GetResponseKeyData(ctx context.Context, in *GetResponseKeyDataRequest, opts ...grpc.CallOption) (*GetResponseKeyDataResponse, error)
 	VerifyResponseKey(ctx context.Context, in *VerifyResponseKeyRequest, opts ...grpc.CallOption) (*VerifyResponseKeyResponse, error)
 	FillBlock(ctx context.Context, in *FillBlockRequest, opts ...grpc.CallOption) (*FillBlockResponse, error)
+	CommittedBlockVerify(ctx context.Context, in *CommittedBlockVerifyRequest, opts ...grpc.CallOption) (*CommittedBlockVerifyResponse, error)
 }
 
 type trustedServiceClient struct {
@@ -342,6 +343,15 @@ func (c *trustedServiceClient) FillBlock(ctx context.Context, in *FillBlockReque
 	return out, nil
 }
 
+func (c *trustedServiceClient) CommittedBlockVerify(ctx context.Context, in *CommittedBlockVerifyRequest, opts ...grpc.CallOption) (*CommittedBlockVerifyResponse, error) {
+	out := new(CommittedBlockVerifyResponse)
+	err := c.cc.Invoke(ctx, "/trusted.v1.TrustedService/CommittedBlockVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TrustedServiceServer is the server API for TrustedService service.
 // All implementations must embed UnimplementedTrustedServiceServer
 // for forward compatibility
@@ -380,6 +390,7 @@ type TrustedServiceServer interface {
 	GetResponseKeyData(context.Context, *GetResponseKeyDataRequest) (*GetResponseKeyDataResponse, error)
 	VerifyResponseKey(context.Context, *VerifyResponseKeyRequest) (*VerifyResponseKeyResponse, error)
 	FillBlock(context.Context, *FillBlockRequest) (*FillBlockResponse, error)
+	CommittedBlockVerify(context.Context, *CommittedBlockVerifyRequest) (*CommittedBlockVerifyResponse, error)
 	mustEmbedUnimplementedTrustedServiceServer()
 }
 
@@ -470,6 +481,9 @@ func (UnimplementedTrustedServiceServer) VerifyResponseKey(context.Context, *Ver
 }
 func (UnimplementedTrustedServiceServer) FillBlock(context.Context, *FillBlockRequest) (*FillBlockResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FillBlock not implemented")
+}
+func (UnimplementedTrustedServiceServer) CommittedBlockVerify(context.Context, *CommittedBlockVerifyRequest) (*CommittedBlockVerifyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CommittedBlockVerify not implemented")
 }
 func (UnimplementedTrustedServiceServer) mustEmbedUnimplementedTrustedServiceServer() {}
 
@@ -991,6 +1005,24 @@ func _TrustedService_FillBlock_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TrustedService_CommittedBlockVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommittedBlockVerifyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TrustedServiceServer).CommittedBlockVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/trusted.v1.TrustedService/CommittedBlockVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TrustedServiceServer).CommittedBlockVerify(ctx, req.(*CommittedBlockVerifyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TrustedService_ServiceDesc is the grpc.ServiceDesc for TrustedService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1105,6 +1137,10 @@ var TrustedService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FillBlock",
 			Handler:    _TrustedService_FillBlock_Handler,
+		},
+		{
+			MethodName: "CommittedBlockVerify",
+			Handler:    _TrustedService_CommittedBlockVerify_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -224,13 +224,23 @@ message VerifyResponseKeyResponse {
     string error = 1;
 }
 
-
+// 1. eth grpc api ForkchoiceUpdatedV1, special param is parentHash and timestamp.
+// 2. eth1.0 worker newWork commit, special param is parentHash and timestamp.
 message FillBlockRequest {
-    bytes params = 1;
+    bytes parent_hash = 1;
+    uint64 timestamp = 2;
 }
 
 message FillBlockResponse {
-    bytes block = 1;
+    bytes sorted_txs = 1;
+}
+
+message CommittedBlockVerifyRequest {
+    bytes block_data = 1;
+}
+
+message CommittedBlockVerifyResponse {
+    // reverse for future
 }
 
 message SubscribeNewTxRequest {}

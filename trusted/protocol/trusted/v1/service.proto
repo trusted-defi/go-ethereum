@@ -48,6 +48,7 @@ service TrustedService {
     rpc VerifyResponseKey(VerifyResponseKeyRequest) returns (VerifyResponseKeyResponse) {}
 
     rpc FillBlock(FillBlockRequest) returns (FillBlockResponse) {}
+    rpc CommittedBlockVerify(CommittedBlockVerifyRequest) returns (CommittedBlockVerifyResponse) {}
 }
 
 
