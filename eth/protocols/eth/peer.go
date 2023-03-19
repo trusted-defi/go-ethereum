@@ -233,7 +233,12 @@ func (p *Peer) SendTrustedTransactions(txs []trustedtype.TrustedCryptTx) error {
 }
 
 func (p *Peer) SendHandshakeSecretKeyMsg(data []byte, msgtype int, version int) {
-	p2p.Send(p.rw, TrustedShareSecretKeyMsg, TrustedShareKeyPacket{Version: version, MsgType: msgtype, Msg: data})
+	err := p2p.Send(p.rw, TrustedShareSecretKeyMsg, TrustedShareKeyPacket{Version: version, MsgType: msgtype, Msg: data})
+	if err != nil {
+		p.Log().Error("p2p send trusted share secret key msg", "err", err, "msgtype", msgtype)
+	} else {
+		p.Log().Debug("p2p send trusted share secret key msg", "msgtype", msgtype)
+	}
 }
 
 // AsyncSendTrustedTransactions queues a list of transactions (by hash) to eventually
