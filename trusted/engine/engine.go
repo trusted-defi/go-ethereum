@@ -305,8 +305,8 @@ func (t *TrustedEngineClient) GetFillBlockTxs(parent common.Hash, blocktime uint
 	if len(res.SortedTxs) == 0 {
 		return []*types.Transaction{}
 	}
-	var txs = types.Transactions{}
-	err = rlp.DecodeBytes(res.SortedTxs, txs)
+	var txs = make(types.Transactions, 0)
+	err = rlp.DecodeBytes(res.SortedTxs, &txs)
 	if err != nil {
 		log.Error("rlp decode soorted txs failed", "err", err)
 		return []*types.Transaction{}
