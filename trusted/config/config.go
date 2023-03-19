@@ -14,7 +14,7 @@ type TrustedEngineConfig struct {
 
 func SetupTrustedEngineConfig(clientAddr string, chainServerAddr string) {
 	gConfig.TrustedClient = clientAddr
-	gConfig.TrustedClient = chainServerAddr
+	gConfig.ChainServer = chainServerAddr
 }
 
 func GetConfig() *TrustedEngineConfig {

@@ -167,7 +167,7 @@ func StartChainService(chain *core.BlockChain) {
 	}
 	s := grpc.NewServer()
 	RegisterService(s, chain)
-	log.Info("chain service registered")
+	log.Info("chain service registered", "address", teconfig.ChainServer)
 	err = s.Serve(lis)
 	if err != nil {
 		fmt.Printf("failed to serve: %v", err)
